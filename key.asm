@@ -95,7 +95,7 @@ EnterKey:
     Cmp ECX,56
     Je Do_C.
     Jne Error
-    
+
 Do_C:
     Mov AX,C
     Jmp Tone
@@ -134,30 +134,9 @@ Error:
     Mov ECX,MsgError
     Mov EDX,MsgErrorLen
     Int 80h
-
-    Jmp Exit
-
 Tone:
-    ; Push A
-    ; Mov BX,AX
-    ; Mov AL,182
-    ; Out 0x43,AL
-    ; Mov AX,BX
-    ; Out 0x42,AL
-    ; Mov AL,AH
-    ; Out 0x42,AL
-    ; In AL,0x61
-    ; Or AL,0x3
-    ; Out 0x61,AL
-    ; Mov AH,0x86
-    ; Int 0x15
-    ; In AL, 0x61
-    ; And AL, 0x0FC
-    ; Out 0x61,AL
-    ; Pop A
-    ; Ret
-    ; Jmp Exit    ;jump to exit label
-
+    
+    Jmp Exit
 Exit:    
     Mov EAX,1   ;keluar dari sys_call
     Mov EBX,0   ;Return 0 (Avoid Segmentation fault (core dumped))
