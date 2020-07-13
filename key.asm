@@ -64,11 +64,10 @@ EnterKey:
     ; Mov EDX,1   ;Jumlah byte yang dibaca
     ; Int 80h     ;Call Kernel
 
-    Mov AH,0x0
-    Int 0x16
-    Mov BL,AL
+    Mov AH,0x7
+    Int 0x21
     XOR ECX,ECX
-    Mov CL,BL
+    Mov CL,AL
 
     Cmp ECX,49
     Je Do_C
