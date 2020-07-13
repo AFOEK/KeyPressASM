@@ -9,7 +9,7 @@ DummyLen:  Equ $-Dummy
 MsgMain: DB "Tekan tombol untuk memainkan satu not: (1,2,3,4,5,6,7,8)",10
 MsgMainLen: Equ $-MsgMain
 
-MsgError: DB "Error note not found please contact the app developer !!"
+MsgError: DB "Error note not found please contact the app developer !!",10
 MsgErrorLen: Equ $-MsgError
 
 C: DW 4560
@@ -41,7 +41,7 @@ _start:         ;main program in here
     Int 80h     ;Call Kernel
     Cmp ECX,13  ;Bandingkan ECX isinya adalah 13 (ASCII code enter)
 
-    ; ;Cara Se Robin;
+    ;Cara Se Robin;
     ; Mov AH,0x0  ;BIOS readkey trap
     ; Int 0x16    ;BIOS call for keyboard
     ; Mov BL,AL   ;pindah hasil readkey ke register BL
@@ -58,11 +58,17 @@ EnterKey:
     Mov EDX,MsgMainLen
     Int 80h
 
-    Mov EAX,3   ;sys_read kernel call
-    Mov EBX,0   ;stdin trap (standart input)
-    Mov ECX,Nada    ;Masukkan offset/jumlah byte yang akan di baca
-    Mov EDX,1   ;Jumlah byte yang dibaca
-    Int 80h     ;Call Kernel
+    ; Mov EAX,3   ;sys_read kernel call
+    ; Mov EBX,0   ;stdin trap (standart input)
+    ; Mov ECX,Nada    ;Masukkan offset/jumlah byte yang akan di baca
+    ; Mov EDX,1   ;Jumlah byte yang dibaca
+    ; Int 80h     ;Call Kernel
+
+    Mov AH,0x0
+    Int 0x16
+    Mov BL,AL
+    XOR ECX,ECX
+    Mov CL,BL
 
     Cmp ECX,49
     Je Do_C
