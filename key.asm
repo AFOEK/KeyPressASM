@@ -97,7 +97,7 @@ EnterKey:
     Jne Error
 
 Do_C:
-    Mov AX,Word[C]
+    Mov AX,[C]
     Jmp Tone
 
 Re_D:
