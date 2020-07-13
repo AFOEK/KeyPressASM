@@ -97,35 +97,35 @@ EnterKey:
     Jne Error
 
 Do_C:
-    Mov AX,C
+    Mov AX,Word[C]
     Jmp Tone
 
 Re_D:
-    Mov AX,D
+    Mov AX,[D]
     Jmp Tone
 
 Mi_E:
-    Mov AX,E
+    Mov AX,[E]
     Jmp Tone
 
 Fa_F:
-    Mov AX,F
+    Mov AX,[F]
     Jmp Tone
 
 Sol_G:
-    Mov AX,G
+    Mov AX,[G]
     Jmp Tone
 
 La_A:
-    Mov AX,A
+    Mov AX,[A]
     Jmp Tone
 
 Si_B:
-    Mov AX,B
+    Mov AX,[B]
     Jmp Tone
 
 Do_C.:
-    Mov AX,C.
+    Mov AX,[C.]
     Jmp Tone
 
 Error:
