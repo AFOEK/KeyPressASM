@@ -48,6 +48,7 @@ _start:         ;main program in here
     ; XOR EAX,EAX ;0-kan register EAX (Mov EAX,0)
     ; Mov AL,BL   ;Kembalikan hasil readkey dari register BL ke AL
     ; Cmp ECX,EAX ;Bandingkan ECX dengan EAX
+    ;This method are restricted by linux kernel, BIOS interrupt cannot be access in x86_64;
 
     Jmp EnterKey  ;lompat ke label EnterKey
 
@@ -58,48 +59,48 @@ EnterKey:
     Mov EDX,MsgMainLen
     Int 80h
 
-    ; Mov EAX,3   ;sys_read kernel call
-    ; Mov EBX,0   ;stdin trap (standart input)
-    ; Mov ECX,Nada    ;Masukkan offset/jumlah byte yang akan di baca
-    ; Mov EDX,1   ;Jumlah byte yang dibaca
-    ; Int 80h     ;Call Kernel
+    Mov EAX,3   ;sys_read kernel call
+    Mov EBX,0   ;stdin trap (standart input)
+    Mov ECX,Nada    ;Masukkan offset/jumlah byte yang akan di baca
+    Mov EDX,1   ;Jumlah byte yang dibaca
+    Int 80h     ;Call Kernel
 
-    Mov AH,0x0
-    Int 0x16
-    XOR ECX,ECX
-    Mov CL,AL
+    ; Mov AH,0x0
+    ; Int 0x16
+    ; XOR ECX,ECX
+    ; Mov CL,AL
 
     Cmp ECX,49
     Je Do_C
-    Jne Error
+    Jmp Error
 
     Cmp ECX,50
     Je Re_D
-    Jne Error
+    Jmp Error
 
     Cmp ECX,51
     Je Mi_E
-    Jne Error
+    Jmp Error
 
     Cmp ECX,52
     Je Fa_F
-    Jne Error
+    Jmp Error
 
     Cmp ECX,53
     Je Sol_G
-    Jne Error
+    Jmp Error
 
     Cmp ECX,54
     Je La_A
-    Jne Error
+    Jmp Error
 
     Cmp ECX,55
     Je Si_B
-    Jne Error
+    Jmp Error
 
     Cmp ECX,56
     Je Do_C.
-    Jne Error
+    Jmp Error
 
 Do_C:
     Mov AX,[C]
