@@ -24,6 +24,13 @@ C.: DW 2280
 SECTION .bss    ;deklarasi untuk variable yang belum terdefinisi
 Enter: Resb 1   ;Pesan 1 byte untuk Enter
 Nada: Resb 1
+termios: 
+    c_iflag rd 1    ; input mode flags
+    c_oflag rd 1    ; output mode flags
+    c_cflag rd 1    ; control mode flags
+    c_lflag rd 1    ; local mode flags
+    c_line rb 1     ; line discipline
+    c_cc rb 19      ; control characters
 
 SECTION .text   ;code section
 global _start   ;mulai di label _start / main program
@@ -32,14 +39,14 @@ _start:         ;main program in here
     Mov EBX,1   ;stdout trap (standart output) 
     Mov ECX,Pesan   ;Masukkan offset pesan kedalam register ECX
     Mov EDX,PanjangPesan    ;Masukkan panjang pesan kedalam register EDX
-    Int 80h     ;call da kernel untuk sys_write stdout
+    syscall     ;call da kernel untuk sys_write stdout
 
     Mov EAX,3   ;sys_read kernel call
     Mov EBX,0   ;stdin trap (standart input)
     Mov ECX,Enter   ;Masukkan offset/jumlah byte yang akan di baca
     Mov EDX,1   ;Jumlah byte yang dibaca
-    Int 80h     ;Call Kernel
-    Cmp ECX,13  ;Bandingkan ECX isinya adalah 13 (ASCII code enter)
+    syscall     ;Call Kernel
+    Cmp RAX,13  ;Bandingkan ECX isinya adalah 13 (ASCII code enter)
 
     ;Cara Se Robin;
     ; Mov AH,0x0  ;BIOS readkey trap
@@ -47,7 +54,7 @@ _start:         ;main program in here
     ; Mov BL,AL   ;pindah hasil readkey ke register BL
     ; XOR EAX,EAX ;0-kan register EAX (Mov EAX,0)
     ; Mov AL,BL   ;Kembalikan hasil readkey dari register BL ke AL
-    ; Cmp ECX,EAX ;Bandingkan ECX dengan EAX
+    ; Cmp RAX,EAX ;Bandingkan ECX dengan EAX
     ;This method are restricted by linux kernel, BIOS interrupt cannot be access in x86_64;
 
     Jmp EnterKey  ;lompat ke label EnterKey
@@ -57,48 +64,69 @@ EnterKey:
     Mov EBX,1
     Mov ECX,MsgMain
     Mov EDX,MsgMainLen
-    Int 80h
+    syscall
 
-    Mov EAX,3   ;sys_read kernel call
+    ;This code are from fellow stackoverflow user @fcdt from my own question;
+    ;https://stackoverflow.com/questions/62937150/reading-input-from-assembly-on-linux-using-x86-64-sys-call?noredirect=1#comment111297947_62937150;
+    ;syscall are same w/ Int 80h (Int 0x80)
+    ;https://stackoverflow.com/questions/46087730/what-happens-if-you-use-the-32-bit-int-0x80-linux-abi-in-64-bit-code
+    ; Get current settings
+    Mov  EAX, 16             ; SYS_ioctl
+    Mov  EDI, 0              ; STDIN_FILENO
+    Mov  ESI, 0x5401         ; TCGETS
+    Mov  RDX, termios
+    syscall
+
+    And byte [c_cflag], $FD  ; Clear ICANON to disable canonical mode
+
+    ; Write termios structure back
+    Mov  EAX, 16             ; SYS_ioctl
+    Mov  EDI, 0              ; STDIN_FILENO
+    Mov  ESI, 0x5402         ; TCSETS
+    Mov  RDX, termios
+    syscall
+
+    Mov EAX,0   ;sys_read kernel call
     Mov EBX,0   ;stdin trap (standart input)
     Mov ECX,Nada    ;Masukkan offset/jumlah byte yang akan di baca
     Mov EDX,1   ;Jumlah byte yang dibaca
-    Int 80h     ;Call Kernel
+    syscall     ;Call Kernel
 
     ; Mov AH,0x0
     ; Int 0x16
     ; XOR ECX,ECX
     ; Mov CL,AL
+    ;This method are restricted by linux kernel, BIOS interrupt cannot be access in x86_64;
 
-    Cmp ECX,49
+    Cmp RAX,49
     Je Do_C
     Jmp Error
 
-    Cmp ECX,50
+    Cmp RAX,50
     Je Re_D
     Jmp Error
 
-    Cmp ECX,51
+    Cmp RAX,51
     Je Mi_E
     Jmp Error
 
-    Cmp ECX,52
+    Cmp RAX,52
     Je Fa_F
     Jmp Error
 
-    Cmp ECX,53
+    Cmp RAX,53
     Je Sol_G
     Jmp Error
 
-    Cmp ECX,54
+    Cmp RAX,54
     Je La_A
     Jmp Error
 
-    Cmp ECX,55
+    Cmp RAX,55
     Je Si_B
     Jmp Error
 
-    Cmp ECX,56
+    Cmp RAX,56
     Je Do_C.
     Jmp Error
 
@@ -139,11 +167,11 @@ Error:
     Mov EBX,1
     Mov ECX,MsgError
     Mov EDX,MsgErrorLen
-    Int 80h
+    syscall
 Tone:
     
     Jmp Exit
 Exit:    
     Mov EAX,1   ;keluar dari sys_call
     Mov EBX,0   ;Return 0 (Avoid Segmentation fault (core dumped))
-    Int 80h     ;call da kernel (Prosedur penting agar code dapat keluar secara baik)
+    syscall     ;call da kernel (Prosedur penting agar code dapat keluar secara baik)
