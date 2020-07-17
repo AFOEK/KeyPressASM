@@ -1,0 +1,1 @@
+Just simple assembly project compile using NASM and Link using Ld
