@@ -46,7 +46,7 @@ _start:         ;main program in here
     Mov ECX,Enter   ;Masukkan offset/jumlah byte yang akan di baca
     Mov EDX,1   ;Jumlah byte yang dibaca
     syscall     ;Call Kernel
-    Cmp RAX,13  ;Bandingkan ECX isinya adalah 13 (ASCII code enter)
+    Cmp ECX,13  ;Bandingkan ECX isinya adalah 13 (ASCII code enter)
 
     ;Cara Se Robin;
     ; Mov AH,0x0  ;BIOS readkey trap
@@ -70,6 +70,7 @@ EnterKey:
     ;https://stackoverflow.com/questions/62937150/reading-input-from-assembly-on-linux-using-x86-64-sys-call?noredirect=1#comment111297947_62937150;
     ;syscall are same w/ Int 80h (Int 0x80)
     ;https://stackoverflow.com/questions/46087730/what-happens-if-you-use-the-32-bit-int-0x80-linux-abi-in-64-bit-code
+
     ; Get current settings
     Mov  EAX, 16             ; SYS_ioctl
     Mov  EDI, 0              ; STDIN_FILENO
