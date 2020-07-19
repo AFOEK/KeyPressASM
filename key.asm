@@ -25,12 +25,12 @@ SECTION .bss    ;deklarasi untuk variable yang belum terdefinisi
 Enter: Resb 1   ;Pesan 1 byte untuk Enter
 Nada: Resb 1
 termios: 
-    c_iflag rd 1    ; input mode flags
-    c_oflag rd 1    ; output mode flags
-    c_cflag rd 1    ; control mode flags
-    c_lflag rd 1    ; local mode flags
-    c_line rb 1     ; line discipline
-    c_cc rb 19      ; control characters
+    c_iflag Resd 1    ; input mode flags
+    c_oflag Resd 1    ; output mode flags
+    c_cflag Resd 1    ; control mode flags
+    c_lflag Resd 1    ; local mode flags
+    c_line Resb 1     ; line discipline
+    c_cc Resb 19      ; control characters
 
 SECTION .text   ;code section
 global _start   ;mulai di label _start / main program
