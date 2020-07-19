@@ -78,7 +78,7 @@ EnterKey:
     Mov  RDX, termios
     syscall
 
-    And byte [c_cflag], $FD  ; Clear ICANON to disable canonical mode
+    And byte [c_cflag], 0xFD  ; Clear ICANON to disable canonical mode
 
     ; Write termios structure back
     Mov  EAX, 16             ; SYS_ioctl
