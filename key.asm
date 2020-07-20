@@ -103,7 +103,7 @@ EnterKey:
     ;this section are make to check what key user pressed/enter;
     ;ASCII code for number 1 - 8 are;
     ;49,50,51,52,53,54,55,56;
-    
+
     Cmp RAX,49
     Je Do_C
     Jmp Error
@@ -137,35 +137,35 @@ EnterKey:
     Jmp Error
 
 Do_C:
-    Mov EAX,[C]
+    Mov AX,word [C]
     Jmp Tone
 
 Re_D:
-    Mov EAX,[D]
+    Mov AX,word [D]
     Jmp Tone
 
 Mi_E:
-    Mov EAX,[E]
+    Mov AX,word [E]
     Jmp Tone
 
 Fa_F:
-    Mov EAX,[F]
+    Mov AX,word [F]
     Jmp Tone
 
 Sol_G:
-    Mov EAX,[G]
+    Mov AX,word [G]
     Jmp Tone
 
 La_A:
-    Mov EAX,[A]
+    Mov AX,word [A]
     Jmp Tone
 
 Si_B:
-    Mov EAX,[B]
+    Mov AX,word [B]
     Jmp Tone
 
 Do_C.:
-    Mov EAX,[C.]
+    Mov AX,word [C.]
     Jmp Tone
 
 Error:
