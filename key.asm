@@ -22,6 +22,7 @@ B: DW 2415
 C.: DW 2280
 
 SECTION .bss    ;deklarasi untuk variable yang belum terdefinisi
+
 Enter: Resb 1   ;Pesan 1 byte untuk Enter
 Nada: Resb 1
 termios: 
@@ -99,6 +100,9 @@ EnterKey:
     ; Mov CL,AL
     ;This method are restricted by linux kernel, BIOS interrupt cannot be access in x86_64;
 
+    ;this section are make to check what key user pressed/enter;
+    ;ASCII code for number 1 - 8 are;
+    ;49,50,51,52,53,54,55,56;
     Cmp RAX,49
     Je Do_C
     Jmp Error
@@ -132,35 +136,35 @@ EnterKey:
     Jmp Error
 
 Do_C:
-    Mov AX,[C]
+    Mov EAX,[C]
     Jmp Tone
 
 Re_D:
-    Mov AX,[D]
+    Mov EAX,[D]
     Jmp Tone
 
 Mi_E:
-    Mov AX,[E]
+    Mov EAX,[E]
     Jmp Tone
 
 Fa_F:
-    Mov AX,[F]
+    Mov EAX,[F]
     Jmp Tone
 
 Sol_G:
-    Mov AX,[G]
+    Mov EAX,[G]
     Jmp Tone
 
 La_A:
-    Mov AX,[A]
+    Mov EAX,[A]
     Jmp Tone
 
 Si_B:
-    Mov AX,[B]
+    Mov EAX,[B]
     Jmp Tone
 
 Do_C.:
-    Mov AX,[C.]
+    Mov EAX,[C.]
     Jmp Tone
 
 Error:
