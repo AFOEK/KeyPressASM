@@ -106,31 +106,24 @@ EnterKey:
 
     Cmp RAX,49
     Je Do_C
-    Jmp Error
 
     Cmp RAX,50
     Je Re_D
-    Jmp Error
 
     Cmp RAX,51
     Je Mi_E
-    Jmp Error
 
     Cmp RAX,52
     Je Fa_F
-    Jmp Error
 
     Cmp RAX,53
     Je Sol_G
-    Jmp Error
 
     Cmp RAX,54
     Je La_A
-    Jmp Error
 
     Cmp RAX,55
     Je Si_B
-    Jmp Error
 
     Cmp RAX,56
     Je Do_C.
