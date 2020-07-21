@@ -31,7 +31,7 @@ termios:
     c_cflag Resd 1    ; control mode flags
     c_lflag Resd 1    ; local mode flags
     c_line Resb 1     ; line discipline
-    c_cc Resb 19      ; control characters
+    c_cc Resb 64      ; control characters
 
 SECTION .text   ;code section
 global _start   ;mulai di label _start / main program
@@ -40,13 +40,13 @@ _start:         ;main program in here
     Mov EBX,1   ;stdout trap (standart output) 
     Mov ECX,Pesan   ;Masukkan offset pesan kedalam register ECX
     Mov EDX,PanjangPesan    ;Masukkan panjang pesan kedalam register EDX
-    syscall     ;call da kernel untuk sys_write stdout
+    Int 80h    ;call da kernel untuk sys_write stdout
 
     Mov EAX,3   ;sys_read kernel call
     Mov EBX,0   ;stdin trap (standart input)
     Mov ECX,Enter   ;Masukkan offset/jumlah byte yang akan di baca
     Mov EDX,1   ;Jumlah byte yang dibaca
-    syscall     ;Call Kernel
+    Int 80h    ;Call Kernel
     Cmp ECX,13  ;Bandingkan ECX isinya adalah 13 (ASCII code enter)
 
     ;Cara Se Robin;
@@ -65,34 +65,34 @@ EnterKey:
     Mov EBX,1
     Mov ECX,MsgMain
     Mov EDX,MsgMainLen
-    syscall
+    Int 80h
 
     ;This code are from fellow stackoverflow user @fcdt from my own question;
     ;https://stackoverflow.com/questions/62937150/reading-input-from-assembly-on-linux-using-x86-64-sys-call?noredirect=1#comment111297947_62937150;
     ;syscall are same w/ Int 80h (Int 0x80)
     ;https://stackoverflow.com/questions/46087730/what-happens-if-you-use-the-32-bit-int-0x80-linux-abi-in-64-bit-code
 
-    ; Get current settings
+    ;Get current settings
     Mov  EAX, 16             ; SYS_ioctl
     Mov  EDI, 0              ; STDIN_FILENO
     Mov  ESI, 0x5401         ; TCGETS
     Mov  RDX, termios
-    syscall
+    Int 80h
 
-    And byte [c_cflag], 0xFD  ; Clear ICANON to disable canonical mode
+    And dword [c_cflag], 0xFD  ; Clear ICANON to disable canonical mode
 
     ; Write termios structure back
     Mov  EAX, 16             ; SYS_ioctl
     Mov  EDI, 0              ; STDIN_FILENO
     Mov  ESI, 0x5402         ; TCSETS
     Mov  RDX, termios
-    syscall
+    Int 80h
 
     Mov EAX,0   ;sys_read kernel call
     Mov EBX,0   ;stdin trap (standart input)
     Mov ECX,Nada    ;Masukkan offset/jumlah byte yang akan di baca
     Mov EDX,1   ;Jumlah byte yang dibaca
-    syscall     ;Call Kernel
+    Int 80h     ;Call Kernel
 
     ; Mov AH,0x0
     ; Int 0x16
@@ -166,11 +166,11 @@ Error:
     Mov EBX,1
     Mov ECX,MsgError
     Mov EDX,MsgErrorLen
-    syscall
+    Int 80h
 Tone:
     
     Jmp Exit
 Exit:    
     Mov EAX,1   ;keluar dari sys_call
     Mov EBX,0   ;Return 0 (Avoid Segmentation fault (core dumped))
-    syscall     ;call da kernel (Prosedur penting agar code dapat keluar secara baik)
+    Int 80h     ;call da kernel (Prosedur penting agar code dapat keluar secara baik)
