@@ -55,7 +55,7 @@ _start:         ;main program in here
     ; Mov BL,AL   ;pindah hasil readkey ke register BL
     ; XOR EAX,EAX ;0-kan register EAX (Mov EAX,0)
     ; Mov AL,BL   ;Kembalikan hasil readkey dari register BL ke AL
-    ; Cmp RAX,EAX ;Bandingkan ECX dengan EAX
+    ; Cmp ECX,EAX ;Bandingkan ECX dengan EAX
     ;This method are restricted by linux kernel, BIOS interrupt cannot be access in x86_64;
 
     Jmp EnterKey  ;lompat ke label EnterKey
@@ -74,22 +74,23 @@ EnterKey:
     ;https://stackoverflow.com/questions/46087730/what-happens-if-you-use-the-32-bit-int-0x80-linux-abi-in-64-bit-code
 
     ;Get current settings
-    Mov  EAX, 16             ; SYS_ioctl
-    Mov  EDI, 0              ; STDIN_FILENO
-    Mov  ESI, 0x5401         ; TCGETS
-    Mov  RDX, termios
+    Mov  EAX, 54             ; SYS_ioctl
+    Mov  EBX, 0              ; STDIN_FILENO
+    Mov  ECX, 0x5401         ; TCGETS
+    Mov  EDX, termios
     Int 80h
 
-    And dword [c_cflag], 0xFD  ; Clear ICANON to disable canonical mode
+    And byte [c_lflag], 0xFD  ; Clear ICANON to disable canonical mode
+    And dword [c_lflag], 0xFFFFFFFD  ; Clear ICANON to disable canonical mode
 
     ; Write termios structure back
-    Mov  EAX, 16             ; SYS_ioctl
-    Mov  EDI, 0              ; STDIN_FILENO
-    Mov  ESI, 0x5402         ; TCSETS
-    Mov  RDX, termios
+    Mov  EAX, 54             ; SYS_ioctl
+    Mov  EBX, 0              ; STDIN_FILENO
+    Mov  ECX, 0x5402         ; TCSETS
+    Mov  EDX, termios
     Int 80h
 
-    Mov EAX,0   ;sys_read kernel call
+    Mov EAX,3   ;sys_read kernel call
     Mov EBX,0   ;stdin trap (standart input)
     Mov ECX,Nada    ;Masukkan offset/jumlah byte yang akan di baca
     Mov EDX,1   ;Jumlah byte yang dibaca
@@ -105,28 +106,28 @@ EnterKey:
     ;ASCII code for number 1 - 8 are;
     ;49,50,51,52,53,54,55,56;
 
-    Cmp RAX,49
+    Cmp ECX,49
     Je Do_C
 
-    Cmp RAX,50
+    Cmp ECX,50
     Je Re_D
 
-    Cmp RAX,51
+    Cmp ECX,51
     Je Mi_E
 
-    Cmp RAX,52
+    Cmp ECX,52
     Je Fa_F
 
-    Cmp RAX,53
+    Cmp ECX,53
     Je Sol_G
 
-    Cmp RAX,54
+    Cmp ECX,54
     Je La_A
 
-    Cmp RAX,55
+    Cmp ECX,55
     Je Si_B
 
-    Cmp RAX,56
+    Cmp ECX,56
     Je Do_C.
     Jmp Error
 

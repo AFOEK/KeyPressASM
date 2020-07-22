@@ -8,3 +8,4 @@ Reference link:
 ~ https://www.reddit.com/r/Assembly_language/comments/htf31k/getch_using_sys_read_in_linux_assembly_x86_64_nasm/?utm_source=share&utm_medium=web2x
 ~ https://www.reddit.com/r/Assembly_language/comments/hukpxs/make_an_piano_using_nasm_on_linux_x86_64/?utm_source=share&utm_medium=web2x
 ~ https://stackoverflow.com/questions/62997791/make-a-piano-using-nasm-on-linux-x86-64
+~ https://stackoverflow.com/questions/63027222/linux-temios-non-canonical-sys-call-getch-doesnt-work/63027767#63027767
