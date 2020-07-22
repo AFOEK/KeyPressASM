@@ -1,5 +1,6 @@
 Just simple assembly project compiled using NASM (Netwide Assembler) and Link using Ld (Linux linker)
-This is an assingment feel free to clone it :D.
+This is an assingment feel free to clone it :D. Fell free to clone it some comment i wrote using indonesia and english,
+Below is the reference link where i ask or acquire insight and idea. ;)
 Thanks for Mr. Robin Huang, S.kom., M.TI. for this assingment, stackoverflow, and r/Assembly_language for the insight.
 -----------------------------------------------------------------------------------------------------
 Reference link: 
