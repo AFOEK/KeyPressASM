@@ -69,7 +69,8 @@ EnterKey:
 
     ;This code are from fellow stackoverflow user @fcdt from my own question;
     ;https://stackoverflow.com/questions/62937150/reading-input-from-assembly-on-linux-using-x86-64-sys-call?noredirect=1#comment111297947_62937150;
-    ;syscall are same w/ Int 80h (Int 0x80)
+    ;syscall are for x86_64 instruction set;
+    ;Int 80h/int 0x80 for x86_32 instruction set;
     ;https://stackoverflow.com/questions/46087730/what-happens-if-you-use-the-32-bit-int-0x80-linux-abi-in-64-bit-code
 
     ;Get current settings
