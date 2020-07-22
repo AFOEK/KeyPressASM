@@ -82,9 +82,9 @@ EnterKey:
     Mov  EDX, termios
     Int 80h
 
-    And byte [c_lflag], 0xFD  ; Clear ICANON to disable canonical mode
+    ;And byte [c_lflag], 0xFD  ; Clear ICANON to disable canonical mode
     ;This have 2 varian choose uncomment if one of this doesn't work;
-    ;And dword [c_lflag], 0xFFFFFFFD  ; Clear ICANON to disable canonical mode
+    And dword [c_lflag], 0xFFFFFFFD  ; Clear ICANON to disable canonical mode
 
     ; Write termios structure back
     Mov  EAX, 54             ; SYS_ioctl
