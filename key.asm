@@ -6,7 +6,7 @@ PanjangPesan: Equ $-Pesan   ;ambil panjang pesan (string.lenght)
 Dummy: DB "This is Dummy Message for debugging purpose",10
 DummyLen:  Equ $-Dummy
 
-MsgMain: DB "Tekan tombol untuk memainkan satu not: (1,2,3,4,5,6,7,8)",10
+MsgMain: DB "Tekan tombol untuk memainkan satu not: (1,2,3,4,5,6,7,8)",10   ;\n
 MsgMainLen: Equ $-MsgMain
 
 MsgError: DB 10,"Error note not found please contact the app developer !!",10
