@@ -72,7 +72,9 @@ EnterKey:
     ;syscall are for x86_64 instruction set;
     ;Int 80h/int 0x80 for x86_32 instruction set;
     ;https://stackoverflow.com/questions/46087730/what-happens-if-you-use-the-32-bit-int-0x80-linux-abi-in-64-bit-code
-
+    ;refined by @Martin Rosenau on stackoverflow;
+    ;https://stackoverflow.com/questions/63027222/linux-temios-non-canonical-sys-call-getch-doesnt-work/63027767#63027767;
+    
     ;Get current settings
     Mov  EAX, 54             ; SYS_ioctl
     Mov  EBX, 0              ; STDIN_FILENO
