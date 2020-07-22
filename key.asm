@@ -9,7 +9,7 @@ DummyLen:  Equ $-Dummy
 MsgMain: DB "Tekan tombol untuk memainkan satu not: (1,2,3,4,5,6,7,8)",10
 MsgMainLen: Equ $-MsgMain
 
-MsgError: DB "Error note not found please contact the app developer !!",10
+MsgError: DB 10,"Error note not found please contact the app developer !!",10
 MsgErrorLen: Equ $-MsgError
 
 C: DW 4560
