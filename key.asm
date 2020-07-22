@@ -74,7 +74,7 @@ EnterKey:
     ;https://stackoverflow.com/questions/46087730/what-happens-if-you-use-the-32-bit-int-0x80-linux-abi-in-64-bit-code
     ;refined by @Martin Rosenau on stackoverflow;
     ;https://stackoverflow.com/questions/63027222/linux-temios-non-canonical-sys-call-getch-doesnt-work/63027767#63027767;
-    
+
     ;Get current settings
     Mov  EAX, 54             ; SYS_ioctl
     Mov  EBX, 0              ; STDIN_FILENO
@@ -83,7 +83,8 @@ EnterKey:
     Int 80h
 
     And byte [c_lflag], 0xFD  ; Clear ICANON to disable canonical mode
-    And dword [c_lflag], 0xFFFFFFFD  ; Clear ICANON to disable canonical mode
+    ;This have 2 varian choose uncomment if one of this doesn't work;
+    ;And dword [c_lflag], 0xFFFFFFFD  ; Clear ICANON to disable canonical mode
 
     ; Write termios structure back
     Mov  EAX, 54             ; SYS_ioctl
