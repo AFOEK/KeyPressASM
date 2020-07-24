@@ -58,7 +58,7 @@ _start:         ;main program in here
     ; Mov BL,AL   ;pindah hasil readkey ke register BL
     ; XOR EAX,EAX ;0-kan register EAX (Mov EAX,0)
     ; Mov AL,BL   ;Kembalikan hasil readkey dari register BL ke AL
-    ; Cmp ECX,0xEAX ;Bandingkan ECX dengan EAX
+    ; Cmp ECX,EAXS ;Bandingkan ECX dengan EAX
     ;This method are restricted by linux kernel, BIOS interrupt cannot be access in x86_64;
 
     Jmp EnterKey  ;lompat ke label EnterKey
@@ -115,28 +115,28 @@ EnterKey:
     ;ASCII code for number 1 - 8 are;
     ;49,50,51,52,53,54,55,56;
 
-    Cmp ECX,0x49
+    Cmp byte [ECX],0x49
     Je Do_C
 
-    Cmp ECX,0x50
+    Cmp byte [ECX],0x50
     Je Re_D
 
-    Cmp ECX,0x51
+    Cmp byte [ECX],0x51
     Je Mi_E
 
-    Cmp ECX,0x52
+    Cmp byte [ECX],0x52
     Je Fa_F
 
-    Cmp ECX,0x53
+    Cmp byte [ECX],0x53
     Je Sol_G
 
-    Cmp ECX,0x54
+    Cmp byte [ECX],0x54
     Je La_A
 
-    Cmp ECX,0x55
+    Cmp byte [ECX],0x55
     Je Si_B
 
-    Cmp ECX,0x56
+    Cmp byte [ECX],0x56
     Je Do_C.
     Jmp Error
 
