@@ -114,6 +114,12 @@ EnterKey:
     ;this section are make to check what key user pressed/enter;
     ;ASCII code for number 1 - 8 are;
     ;49,50,51,52,53,54,55,56;
+    ;Just for debugging purpose;
+    ; Mov EAX,4
+    ; Mov EBX,1
+    ; Mov ECX,Nada
+    ; Mov EDX,1
+    ; Int 80h
 
     Cmp byte [ECX],0x49
     Je Do_C
