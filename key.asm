@@ -44,10 +44,13 @@ _start:         ;main program in here
 
     Mov EAX,3   ;sys_read kernel call
     Mov EBX,0   ;stdin trap (standart input)
-    Mov ECX,Enter   ;Masukkan offset/jumlah byte yang akan di baca
+    Mov ECX,Enter   ;Masukkan jumlah buffer yang akan ditampung, Enter = ECX
     Mov EDX,1   ;Jumlah byte yang dibaca
     Int 80h    ;Call Kernel
-    Cmp ECX,13  ;Bandingkan ECX isinya adalah 13 (ASCII code enter)
+
+    Cmp EAX,0   ;Check return value of sys_read 0 (0 Means EOF [End of Line])
+    Je _start   ;if equal jump to start again
+    Cmp byte [Enter],0x13  ;Bandingkan isi buffer adalah 13 (ASCII code enter)
 
     ;Cara Se Robin;
     ; Mov AH,0x0  ;BIOS readkey trap
@@ -55,7 +58,7 @@ _start:         ;main program in here
     ; Mov BL,AL   ;pindah hasil readkey ke register BL
     ; XOR EAX,EAX ;0-kan register EAX (Mov EAX,0)
     ; Mov AL,BL   ;Kembalikan hasil readkey dari register BL ke AL
-    ; Cmp ECX,EAX ;Bandingkan ECX dengan EAX
+    ; Cmp byte [Nada],0xEAX ;Bandingkan ECX dengan EAX
     ;This method are restricted by linux kernel, BIOS interrupt cannot be access in x86_64;
 
     Jmp EnterKey  ;lompat ke label EnterKey
@@ -76,10 +79,10 @@ EnterKey:
     ;https://stackoverflow.com/questions/63027222/linux-temios-non-canonical-sys-call-getch-doesnt-work/63027767#63027767;
 
     ;Get current settings
-    Mov  EAX, 54             ; SYS_ioctl
-    Mov  EBX, 0              ; STDIN_FILENO
-    Mov  ECX, 0x5401         ; TCGETS
-    Mov  EDX, termios
+    Mov EAX, 54             ; SYS_ioctl
+    Mov EBX, 0              ; STDIN_FILENO
+    Mov ECX, 0x5401         ; TCGETS
+    Mov EDX, termios
     Int 80h
 
     ;And byte [c_lflag], 0xFD  ; Clear ICANON to disable canonical mode
@@ -87,17 +90,20 @@ EnterKey:
     And dword [c_lflag], 0xFFFFFFFD  ; Clear ICANON to disable canonical mode
 
     ; Write termios structure back
-    Mov  EAX, 54             ; SYS_ioctl
-    Mov  EBX, 0              ; STDIN_FILENO
-    Mov  ECX, 0x5402         ; TCSETS
-    Mov  EDX, termios
+    Mov EAX, 54             ; SYS_ioctl
+    Mov EBX, 0              ; STDIN_FILENO
+    Mov ECX, 0x5402         ; TCSETS
+    Mov EDX, termios
     Int 80h
 
     Mov EAX,3   ;sys_read kernel call
     Mov EBX,0   ;stdin trap (standart input)
-    Mov ECX,Nada    ;Masukkan offset/jumlah byte yang akan di baca
+    Mov ECX,Nada    ;Masukkan offset yang akan di baca
     Mov EDX,1   ;Jumlah byte yang dibaca
     Int 80h     ;Call Kernel
+
+    Cmp EAX,0
+    Je _start
 
     ; Mov AH,0x0
     ; Int 0x16
@@ -109,28 +115,28 @@ EnterKey:
     ;ASCII code for number 1 - 8 are;
     ;49,50,51,52,53,54,55,56;
 
-    Cmp ECX,49
+    Cmp byte [Nada],0x49
     Je Do_C
 
-    Cmp ECX,50
+    Cmp byte [Nada],0x50
     Je Re_D
 
-    Cmp ECX,51
+    Cmp byte [Nada],0x51
     Je Mi_E
 
-    Cmp ECX,52
+    Cmp byte [Nada],0x52
     Je Fa_F
 
-    Cmp ECX,53
+    Cmp byte [Nada],0x53
     Je Sol_G
 
-    Cmp ECX,54
+    Cmp byte [Nada],0x54
     Je La_A
 
-    Cmp ECX,55
+    Cmp byte [Nada],0x55
     Je Si_B
 
-    Cmp ECX,56
+    Cmp byte [Nada],0x56
     Je Do_C.
     Jmp Error
 
