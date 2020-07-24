@@ -98,7 +98,7 @@ EnterKey:
 
     Mov EAX,3   ;sys_read kernel call
     Mov EBX,0   ;stdin trap (standart input)
-    Mov ECX,Nada    ;Masukkan offset yang akan di baca
+    Mov ECX,Nada    ;Masukkan jumlah buffer yang akan ditampung, Enter = ECX
     Mov EDX,1   ;Jumlah byte yang dibaca
     Int 80h     ;Call Kernel
 
