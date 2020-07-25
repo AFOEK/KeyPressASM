@@ -121,28 +121,28 @@ EnterKey:
     ; Mov EDX,1
     ; Int 80h
 
-    Cmp byte [ECX],0x49
+    Cmp byte [ECX],1
     Je Do_C
 
-    Cmp byte [ECX],0x50
+    Cmp byte [ECX],2
     Je Re_D
 
-    Cmp byte [ECX],0x51
+    Cmp byte [ECX],3
     Je Mi_E
 
-    Cmp byte [ECX],0x52
+    Cmp byte [ECX],4
     Je Fa_F
 
-    Cmp byte [ECX],0x53
+    Cmp byte [ECX],5
     Je Sol_G
 
-    Cmp byte [ECX],0x54
+    Cmp byte [ECX],6
     Je La_A
 
-    Cmp byte [ECX],0x55
+    Cmp byte [ECX],7
     Je Si_B
 
-    Cmp byte [ECX],0x56
+    Cmp byte [ECX],8
     Je Do_C.
     Jmp Error
 
