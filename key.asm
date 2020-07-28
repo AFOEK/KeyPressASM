@@ -18,6 +18,52 @@
 ;extern ssize_t write (int __fd, const void *__buf, size_t __n) __wur;          |
 ;-------------------------------------------------------------------------------;
 ;ReadMe.txt for more citation, book reference, and link                         |
+;-------------------------------------------------------------------------------|
+;++++++++++++++++++++++++++ASCII C0de Reference+++++++++++++++++++++++++++++++++|
+;|---HEX---|---Character---|------Description-------|---------------------------|
+;    0x0   |      NUL      |         NULL           |
+;    0x1   |      SOH      |   Start of Header      |
+;    0x2   |      STX      |    Start of Text       |
+;    0x3   |      ETX      |     End of Text        |
+;    0x4   |      EOT      |  End of Trasnmission   |
+;    0x5   |      ENQ      |       Enquiry          |
+;    0x6   |      ACK      |     Acknowledge        |
+;    0x7   |      BEL      |        Bell            |
+;    0x8   |      BS       |      Backspace         |
+;    0x9   |      HT       |    Horizontal Tab      |
+;    0x10  |      LF       |      Line Feed         |
+;    0x11  |      VT       |     Vertical Tab       |
+;    0x12  |      FF       |      Form Feed         |
+;    0x13  |      CR       |   Carriage Return      |
+;    0x14  |      SO       |      Shift Out         |
+;    0x15  |      SI       |      Shift In          |
+;    0x16  |      DLE      |   Data Link Escape     |
+;    0x17  |      DC1      |   Device Control 1     |
+;    0x18  |      DC2      |   Device Control 2     |
+;    0x19  |      DC3      |   Device Control 3     |
+;    0x20  |      DC4      |   Device Control 4     |
+;    0x21  |      NAK      | Negative Acknowledge   |
+;    0x22  |      SYN      |     Synchronize        |
+;    0x23  |      ETB      | End Transmission Block |
+;    0x24  |      CAN      |        Cancel          |
+;    0x25  |      EM       |     End Of Medium      |
+;    0x26  |      SUB      |      Substitute        |
+;    0x27  |      ESC      |        Escape          |
+;    0x28  |      FS       |     File Seperator     |
+;    0x29  |      GS       |    Group Seperator     |
+;    0x30  |      RS       |    Record Seperator    |
+;    0x31  |      US       |     Unit Seperator     |
+;    0x48  |      0        |           0            |
+;    ....  |     ...       |          ...           |
+;    0x57  |      9        |           9            |
+;    0x65  |      A        |           A            |
+;    ....  |     ...       |          ...           |
+;    0x90  |      Z        |           Z            |
+;    0x97  |      a        |           a            |
+;    ....  |     ...       |          ...           |
+;    0x122 |      z        |           z            |
+;    0x127 |     DEL       |        Delete          |
+;+++++++++++++++++++++++++++++EndASCIIC0deReference+++++++++++++++++++++++++++++;
 ;===============================EndPreNote======================================;
 
 SECTION .data   ;deklarasi untuk data/string
