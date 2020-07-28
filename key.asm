@@ -118,7 +118,7 @@ _start:         ;main program in here
 
     Cmp EAX,0   ;Check return value of sys_read 0 (0 Means EOF [End of Line])
     Je _start   ;if equal jump to start again
-    Cmp byte [Enter],0x13  ;Bandingkan isi buffer adalah 13 (ASCII code enter)
+    Cmp byte [Enter],'0x13'  ;Bandingkan isi buffer adalah 13 (ASCII code enter)
 
     ;Cara Se Robin;
     ; Mov AH,0x0  ;BIOS readkey trap
@@ -189,28 +189,28 @@ EnterKey:
     ; Mov EDX,1
     ; Int 80h
 
-    Cmp byte [ECX],1
+    Cmp byte [ECX],'1'
     Je Do_C
 
-    Cmp byte [ECX],2
+    Cmp byte [ECX],'2'
     Je Re_D
 
-    Cmp byte [ECX],3
+    Cmp byte [ECX],'3'
     Je Mi_E
 
-    Cmp byte [ECX],4
+    Cmp byte [ECX],'4'
     Je Fa_F
 
-    Cmp byte [ECX],5
+    Cmp byte [ECX],'5'
     Je Sol_G
 
-    Cmp byte [ECX],6
+    Cmp byte [ECX],'6'
     Je La_A
 
-    Cmp byte [ECX],7
+    Cmp byte [ECX],'7'
     Je Si_B
 
-    Cmp byte [ECX],8
+    Cmp byte [ECX],'8'
     Je Do_C.
     Jmp Error
 
