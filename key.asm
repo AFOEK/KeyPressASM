@@ -18,7 +18,7 @@
 ;extern ssize_t write (int __fd, const void *__buf, size_t __n) __wur;          |
 ;-------------------------------------------------------------------------------;
 ;ReadMe.txt for more citation, book reference, and link                         |
-;===============================EndPreNode======================================;
+;===============================EndPreNote======================================;
 
 SECTION .data   ;deklarasi untuk data/string
 
