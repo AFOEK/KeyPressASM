@@ -1,3 +1,25 @@
+;==================================PreNote======================================;
+;This some info or term are used in Linux/UNIX;                                 |
+;STDIN (Standart Input), STDOUT (Standart Output), STDERR (Standart Error);     |
+;Termios C Struct are in "/usr/include/asm-generic/termios.h";                  |
+;-------------------------------------------------------------------------------;
+; struct termio {                                                               |
+; 	unsigned short c_iflag;		/* input mode flags */                          |
+; 	unsigned short c_oflag;		/* output mode flags */                         |
+; 	unsigned short c_cflag;		/* control mode flags */                        |
+; 	unsigned short c_lflag;		/* local mode flags */                          |
+; 	unsigned char c_line;		/* line discipline */                           |
+; 	unsigned char c_cc[NCC];	/* control characters */                        |
+; }                                                                             |
+;-------------------------------------------------------------------------------;
+;For read and write are in "usr/include/unistd.h";                              |
+;-------------------------------------------------------------------------------;
+;extern ssize_t read (int __fd, void *__buf, size_t __nbytes) __wur;            |
+;extern ssize_t write (int __fd, const void *__buf, size_t __n) __wur;          |
+;-------------------------------------------------------------------------------;
+;ReadMe.txt for more citation, book reference, and link                         |
+;===============================EndPreNode======================================;
+
 SECTION .data   ;deklarasi untuk data/string
 
 Pesan: DB "Untuk memulai tekan tombol enter: "   ;Defind byte pesan

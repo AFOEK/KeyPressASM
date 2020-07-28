@@ -23,4 +23,6 @@ Reference link:
 ~ Mengelola Sumber Daya Sistem Komputer dengan Bahasa Assembly (Robin, S.Kom., M.TI., MTA. ; Ir. Jusin, M.TI. ; Ferawaty, S.Kom., M.Kom. ; Wenripin Chandra, S.Kom., M.TI. ; Okky Putra Barus, S.Kom., M.M., M.TI. ; 2020)
 ~ Linux Programming Interface (A Linux and UNIX® System Programming Handbook) Volume 1 & 2 (Michael Kerrisk, 2010)
 ~ How Linux Works (Brian Ward, 2015)
+-----------------------------------------------Another Web--------------------------------------------
+~ https://www.mkssoftware.com/docs/man5/struct_termios.5.asp
 ======================================================================================================
