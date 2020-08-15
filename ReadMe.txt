@@ -21,6 +21,7 @@ Reference link:
 -----------------------------------------------Reddit-------------------------------------------------
 ~ https://www.reddit.com/r/Assembly_language/comments/htf31k/getch_using_sys_read_in_linux_assembly_x86_64_nasm/?utm_source=share&utm_medium=web2x
 ~ https://www.reddit.com/r/Assembly_language/comments/hukpxs/make_an_piano_using_nasm_on_linux_x86_64/?utm_source=share&utm_medium=web2x
+~ https://www.reddit.com/r/Assembly_language/comments/i01eox/how_to_make_sine_wave_using_defined_frequency_on/?utm_source=share&utm_medium=web2x
 -----------------------------------------------Books--------------------------------------------------
 ~ Assembly Language Step by Step Programming with Linux Third Edition (Jeff Duntenmann, 2009) 
 ~ Mengelola Sumber Daya Sistem Komputer dengan Bahasa Assembly (Robin, S.Kom., M.TI., MTA. ; Ir. Jusin, M.TI. ; Ferawaty, S.Kom., M.Kom. ; Wenripin Chandra, S.Kom., M.TI. ; Okky Putra Barus, S.Kom., M.M., M.TI. ; 2020)

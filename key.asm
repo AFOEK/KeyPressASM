@@ -151,19 +151,32 @@ MsgMainLen: Equ $-MsgMain
 MsgError: DB 10,"Error note not found please contact the app developer !!",10
 MsgErrorLen: Equ $-MsgError
 
-C: DW 4560
-D: DW 4063
-E: DW 3619
-F: DW 3416
-G: DW 3043
-A: DW 2711
-B: DW 2415
-C.: DW 2280
+;Is not usefull because the frequency already pre-scaled;
+; C: DW 4560
+; D: DW 4063
+; E: DW 3619
+; F: DW 3416
+; G: DW 3043
+; A: DW 2711
+; B: DW 2415
+; C.: DW 2280
+;Below are frequency table which already converted to radians and divided by 8000;
+;Thanks u/FUZxxl for the completed tutorial and insight;
+
+FreqTable:
+    dq 2.0548023848490921e-1    ;C
+    dq 2.3064376937686967e-1    ;D
+    dq 2.5888887780455583e-1    ;E
+    dq 2.7428321157402019e-1    ;F
+    dq 3.0787249548024787e-1    ;G
+    dq 3.4557519189487729e-1    ;A
+    dq 3.8789503773922857e-1    ;B
+    dq 4.1096047696981880e-1    ;C'
 
 SECTION .bss    ;deklarasi untuk variable yang belum terdefinisi
 
 Enter: Resb 1   ;Pesan 1 byte untuk Enter
-Nada: Resb 1
+Nada: Resb 1    ;Reserve 1 byte
 termios: 
     c_iflag Resd 1    ; input mode flags
     c_oflag Resd 1    ; output mode flags
@@ -198,7 +211,7 @@ _start:         ;main program in here
     ; XOR EAX,EAX ;0-kan register EAX (Mov EAX,0)
     ; Mov AL,BL   ;Kembalikan hasil readkey dari register BL ke AL
     ; Cmp ECX,EAXS ;Bandingkan ECX dengan EAX
-    ;This method are restricted by linux kernel, BIOS interrupt cannot be access in x86_64;
+    ;This method are restricted by linux kernel, BIOS interrupt cannot be access in x86_32;
 
     Jmp EnterKey  ;lompat ke label EnterKey
 
@@ -286,35 +299,35 @@ EnterKey:
     Jmp Error
 
 Do_C:
-    Mov AX,word [C]
+    
     Jmp Tone
 
 Re_D:
-    Mov AX,word [D]
+    
     Jmp Tone
 
 Mi_E:
-    Mov AX,word [E]
+    
     Jmp Tone
 
 Fa_F:
-    Mov AX,word [F]
+    
     Jmp Tone
 
 Sol_G:
-    Mov AX,word [G]
+    
     Jmp Tone
 
 La_A:
-    Mov AX,word [A]
+    
     Jmp Tone
 
 Si_B:
-    Mov AX,word [B]
+    
     Jmp Tone
 
 Do_C.:
-    Mov AX,word [C.]
+    ]
     Jmp Tone
 
 Error:
