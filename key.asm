@@ -164,14 +164,17 @@ MsgErrorLen: Equ $-MsgError
 ;Thanks u/FUZxxl for the completed tutorial and insight;
 
 FreqTable:
-    dq 2.0548023848490921e-1    ;C
-    dq 2.3064376937686967e-1    ;D
-    dq 2.5888887780455583e-1    ;E
-    dq 2.7428321157402019e-1    ;F
-    dq 3.0787249548024787e-1    ;G
-    dq 3.4557519189487729e-1    ;A
-    dq 3.8789503773922857e-1    ;B
-    dq 4.1096047696981880e-1    ;C'
+    DQ 2.0548023848490921e-1    ;C
+    DQ 2.3064376937686967e-1    ;D
+    DQ 2.5888887780455583e-1    ;E
+    DQ 2.7428321157402019e-1    ;F
+    DQ 3.0787249548024787e-1    ;G
+    DQ 3.4557519189487729e-1    ;A
+    DQ 3.8789503773922857e-1    ;B
+    DQ 4.1096047696981880e-1    ;C'
+
+path: DB '/dev/snd/note'
+pathLen: Equ $-path
 
 SECTION .bss    ;deklarasi untuk variable yang belum terdefinisi
 
@@ -184,6 +187,7 @@ termios:
     c_lflag Resd 1    ; local mode flags
     c_line Resb 1     ; line discipline
     c_cc Resb 64      ; control characters
+WriteBuffer: Resd 2024  ;Reserve 2KiB
 
 SECTION .text   ;code section
 global _start   ;mulai di label _start / main program
@@ -231,10 +235,10 @@ EnterKey:
     ;https://stackoverflow.com/questions/63027222/linux-temios-non-canonical-sys-call-getch-doesnt-work/63027767#63027767;
 
     ;Get current settings
-    Mov EAX, 54             ; SYS_ioctl
-    Mov EBX, 0              ; STDIN_FILENO
-    Mov ECX, 0x5401         ; TCGETS
-    Mov EDX, termios
+    Mov EAX,54             ; SYS_ioctl
+    Mov EBX,0              ; STDIN_FILENO
+    Mov ECX,0x5401         ; TCGETS
+    Mov EDX,termios
     Int 80h
 
     ;And byte [c_lflag], 0xFD  ; Clear ICANON to disable canonical mode
@@ -242,10 +246,10 @@ EnterKey:
     And dword [c_lflag], 0xFFFFFFFD  ; Clear ICANON to disable canonical mode
 
     ; Write termios structure back
-    Mov EAX, 54             ; SYS_ioctl
-    Mov EBX, 0              ; STDIN_FILENO
-    Mov ECX, 0x5402         ; TCSETS
-    Mov EDX, termios
+    Mov EAX,54             ; SYS_ioctl
+    Mov EBX,0              ; STDIN_FILENO
+    Mov ECX,0x5402         ; TCSETS
+    Mov EDX,termios
     Int 80h
 
     Mov EAX,3   ;sys_read kernel call
@@ -298,6 +302,11 @@ EnterKey:
     Je Do_C.
     Jmp Error
 
+Open:
+    Mov EAX,5
+    Mov EBX,path
+    Mov ECX,2
+    Int 80h
 Do_C:
     
     Jmp Tone
@@ -327,7 +336,7 @@ Si_B:
     Jmp Tone
 
 Do_C.:
-    ]
+    
     Jmp Tone
 
 Error:
