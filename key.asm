@@ -173,7 +173,7 @@ FreqTable:
     DQ 3.8789503773922857e-1    ;B
     DQ 4.1096047696981880e-1    ;C'
 
-path: DB '/dev/snd/note'
+path: DB '/dev/snd/pcmC0D0p',0
 pathLen: Equ $-path
 
 SECTION .bss    ;deklarasi untuk variable yang belum terdefinisi
@@ -302,11 +302,12 @@ EnterKey:
     Je Do_C.
     Jmp Error
 
-Open:
-    Mov EAX,5
-    Mov EBX,path
-    Mov ECX,2
-    Int 80h
+OpenSndDriver:
+    Mov EAX,5   ;sys_open kernel call
+    Mov EBX,path    ;define the path
+    Mov ECX,2   ;Open and write specified file
+    Int 80h     ;Call kernel
+    
 Do_C:
     
     Jmp Tone
