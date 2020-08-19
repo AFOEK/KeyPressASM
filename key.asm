@@ -206,7 +206,7 @@ _start:         ;main program in here
 
     Cmp EAX,0   ;Check return value of sys_read 0 (0 Means EOF [End of Line])
     Je _start   ;if equal jump to start again
-    Cmp byte [Enter],'0x13'  ;Bandingkan isi buffer adalah 13 (ASCII code enter)
+    Cmp byte [Enter],0x13  ;Bandingkan isi buffer adalah 13 (ASCII code enter)
 
     ;Cara Se Robin;
     ; Mov AH,0x0  ;BIOS readkey trap
@@ -307,7 +307,7 @@ OpenSndDriver:
     Mov EBX,path    ;define the path
     Mov ECX,2   ;Open and write specified file
     Int 80h     ;Call kernel
-    
+
 Do_C:
     
     Jmp Tone
