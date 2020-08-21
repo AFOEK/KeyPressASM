@@ -309,36 +309,22 @@ OpenSndDriver:
     Int 80h     ;Call kernel
 
 Do_C:
+    Test ECX,ECX
+    Jz  EnterKey
     
-    Jmp Tone
-
 Re_D:
-    
-    Jmp Tone
 
 Mi_E:
-    
-    Jmp Tone
 
 Fa_F:
-    
-    Jmp Tone
 
 Sol_G:
-    
-    Jmp Tone
 
 La_A:
-    
-    Jmp Tone
 
 Si_B:
-    
-    Jmp Tone
 
 Do_C.:
-    
-    Jmp Tone
 
 Error:
     Mov EAX,4
@@ -346,9 +332,6 @@ Error:
     Mov ECX,MsgError
     Mov EDX,MsgErrorLen
     Int 80h
-Tone:
-    
-    Jmp Exit
 Exit:    
     Mov EAX,1   ;keluar dari sys_call
     Mov EBX,0   ;Return 0 (Avoid Segmentation fault (core dumped))
