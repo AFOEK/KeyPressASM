@@ -6,7 +6,7 @@ Thanks for Mr. Robin Huang, S.kom., M.TI. for this assingment, stackoverflow, an
 Special thanks to :
 * Evelyn Williem (03082180049) https://github.com/evelynwiliem *
 * Trinity Evelyn (03082180020) https://github.com/triievee *
-In this repo I gib disassemble version from my executable from ndisasm with x86_32 and x86_64 version with intel, amd, idt and cyrix
+In this repo I gib disassemble version from my executable from ndisasm with x86_32 and x86_64 version with Intel, AMD, IDT and CYRIX
 
 -----------------------------------------------------------------------------------------------------
 Reference link: 
