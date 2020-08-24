@@ -30,6 +30,7 @@ Reference link:
 -----------------------------------------------Another Web--------------------------------------------
 ~ https://www.mkssoftware.com/docs/man5/struct_termios.5.asp
 ~ http://lsi.vc.ehu.es/pablogn/docencia/ISO/2%20Llamadas%20al%20Sistema,%20Kernel/System%20Call%20Table.html
+~ https://en.wikipedia.org/wiki/X86_instruction_listings#x87_floating-point_instructions
 -----------------------------------------------Manual Page--------------------------------------------
 ~ man syscall
 ~ man termios

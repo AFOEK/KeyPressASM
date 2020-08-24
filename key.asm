@@ -176,6 +176,8 @@ FreqTable:
 path: DB '/dev/snd/pcmC0D0p',0
 pathLen: Equ $-path
 
+scale: DD 127.5
+
 SECTION .bss    ;deklarasi untuk variable yang belum terdefinisi
 
 Enter: Resb 1   ;Pesan 1 byte untuk Enter
@@ -309,9 +311,12 @@ OpenSndDriver:
     Int 80h     ;Call kernel
 
 Do_C:
-    Test ECX,ECX
-    Jz  EnterKey
-    
+    Test ECX,ECX    ;Test if any sample in ECX
+    Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
+    Xor EAX,EAX     ;EAX = 0
+    Push EAX        ;Push EAX value to normal stack
+    Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
+    Jmp Loop    ;GOTO loop
 Re_D:
 
 Mi_E:
@@ -326,6 +331,22 @@ Si_B:
 
 Do_C.:
 
+Loop:
+    Fld ST0 ;Load the top stack value to stack (duplicate it) [Floating]
+    Fmul ST0, ST2   ;Multiple the top stack with third stack (sampleno * note) and store it to ST(0)/first stack [Floating]
+    Fsin    ;Calculate sine
+    Fld dword [scale] ;push scale value to Floating point stack [Floating]
+    Fmul ST1,ST0    ;Multiple the first value with second value (sin(sampleno*note)*127.5) store it to ST(0) [Floating]
+    Faddp   ;add first stack and second stack and POP the register stack [Floating]
+    Fistp dword [esp]   ;store ST(0) and POP register stack [Floating]
+    Mov [esp],EAX   ;Load number drom stack
+    Stosb   ;Store to string buffer
+    Fld1    ;load 1 to stack [Floating]
+    Faddp   ;add first stack and second stack and POP the register stack (sampleno + 1.0) [Floating]
+    Dec ECX ; ECX--
+    Jnz Loop    ;if (ECX != 0) GOTO Loop
+    Fistp dword [esp]   ;Load next sampleno to Stack
+    Pop EAX ;POP EAX value from register
 Error:
     Mov EAX,4
     Mov EBX,1
