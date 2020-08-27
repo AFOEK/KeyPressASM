@@ -316,21 +316,72 @@ Do_C:
     Xor EAX,EAX     ;EAX = 0
     Push EAX        ;Push EAX value to normal stack
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
+    Mov EDX,0   ;Take the index number from table
+    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
 Re_D:
-
+    Test ECX,ECX    ;Test if any sample in ECX
+    Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
+    Xor EAX,EAX     ;EAX = 0
+    Push EAX        ;Push EAX value to normal stack
+    Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
+    Mov EDX,1   ;Take the index number from table
+    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Jmp Loop    ;GOTO loop
 Mi_E:
-
+    Test ECX,ECX    ;Test if any sample in ECX
+    Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
+    Xor EAX,EAX     ;EAX = 0
+    Push EAX        ;Push EAX value to normal stack
+    Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
+    Mov EDX,2   ;Take the index number from table
+    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Jmp Loop    ;GOTO loop
 Fa_F:
-
+    Test ECX,ECX    ;Test if any sample in ECX
+    Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
+    Xor EAX,EAX     ;EAX = 0
+    Push EAX        ;Push EAX value to normal stack
+    Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
+    Mov EDX,3   ;Take the index number from table
+    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Jmp Loop    ;GOTO loop
 Sol_G:
-
+    Test ECX,ECX    ;Test if any sample in ECX
+    Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
+    Xor EAX,EAX     ;EAX = 0
+    Push EAX        ;Push EAX value to normal stack
+    Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
+    Mov EDX,4   ;Take the index number from table
+    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Jmp Loop    ;GOTO loop
 La_A:
-
+    Test ECX,ECX    ;Test if any sample in ECX
+    Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
+    Xor EAX,EAX     ;EAX = 0
+    Push EAX        ;Push EAX value to normal stack
+    Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
+    Mov EDX,5   ;Take the index number from table
+    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Jmp Loop    ;GOTO loop
 Si_B:
-
+    Test ECX,ECX    ;Test if any sample in ECX
+    Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
+    Xor EAX,EAX     ;EAX = 0
+    Push EAX        ;Push EAX value to normal stack
+    Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
+    Mov EDX,6   ;Take the index number from table
+    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Jmp Loop    ;GOTO loop
 Do_C.:
-
+    Test ECX,ECX    ;Test if any sample in ECX
+    Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
+    Xor EAX,EAX     ;EAX = 0
+    Push EAX        ;Push EAX value to normal stack
+    Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
+    Mov EDX,7   ;Take the index number from table
+    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Jmp Loop    ;GOTO loop
 Loop:
     Fld ST0 ;Load the top stack value to stack (duplicate it) [Floating]
     Fmul ST0, ST2   ;Multiple the top stack with third stack (sampleno * note) and store it to ST(0)/first stack [Floating]
@@ -339,7 +390,7 @@ Loop:
     Fmul ST1,ST0    ;Multiple the first value with second value (sin(sampleno*note)*127.5) store it to ST(0) [Floating]
     Faddp   ;add first stack and second stack and POP the register stack [Floating]
     Fistp dword [esp]   ;store ST(0) and POP register stack [Floating]
-    Mov [esp],EAX   ;Load number drom stack
+    Mov [esp],EAX   ;Load number from stack
     Stosb   ;Store to string buffer
     Fld1    ;load 1 to stack [Floating]
     Faddp   ;add first stack and second stack and POP the register stack (sampleno + 1.0) [Floating]
