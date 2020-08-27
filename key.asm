@@ -317,7 +317,7 @@ Do_C:
     Push EAX        ;Push EAX value to normal stack
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,0   ;Take the index number from table
-    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
 Re_D:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -326,7 +326,7 @@ Re_D:
     Push EAX        ;Push EAX value to normal stack
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,1   ;Take the index number from table
-    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
 Mi_E:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -335,7 +335,7 @@ Mi_E:
     Push EAX        ;Push EAX value to normal stack
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,2   ;Take the index number from table
-    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
 Fa_F:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -344,7 +344,7 @@ Fa_F:
     Push EAX        ;Push EAX value to normal stack
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,3   ;Take the index number from table
-    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
 Sol_G:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -353,7 +353,7 @@ Sol_G:
     Push EAX        ;Push EAX value to normal stack
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,4   ;Take the index number from table
-    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
 La_A:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -362,7 +362,7 @@ La_A:
     Push EAX        ;Push EAX value to normal stack
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,5   ;Take the index number from table
-    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
 Si_B:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -371,7 +371,7 @@ Si_B:
     Push EAX        ;Push EAX value to normal stack
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,6   ;Take the index number from table
-    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
 Do_C.:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -380,7 +380,7 @@ Do_C.:
     Push EAX        ;Push EAX value to normal stack
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,7   ;Take the index number from table
-    Fld qword [table+8*EDX] ;take the the table value and push into stack [Floating]
+    Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
 Loop:
     Fld ST0 ;Load the top stack value to stack (duplicate it) [Floating]
