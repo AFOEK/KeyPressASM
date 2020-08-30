@@ -304,12 +304,6 @@ EnterKey:
     Je Do_C.
     Jmp Error
 
-OpenSndDriver:
-    Mov EAX,5   ;sys_open kernel call
-    Mov EBX,path    ;define the path
-    Mov ECX,2   ;Open and write specified file
-    Int 80h     ;Call kernel
-
 Do_C:
     Test ECX,ECX    ;Test if any sample in ECX
     Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
@@ -319,6 +313,7 @@ Do_C:
     Mov EDX,0   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
+
 Re_D:
     Test ECX,ECX    ;Test if any sample in ECX
     Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
@@ -328,6 +323,7 @@ Re_D:
     Mov EDX,1   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
+
 Mi_E:
     Test ECX,ECX    ;Test if any sample in ECX
     Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
@@ -337,6 +333,7 @@ Mi_E:
     Mov EDX,2   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
+
 Fa_F:
     Test ECX,ECX    ;Test if any sample in ECX
     Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
@@ -346,6 +343,7 @@ Fa_F:
     Mov EDX,3   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
+
 Sol_G:
     Test ECX,ECX    ;Test if any sample in ECX
     Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
@@ -355,6 +353,7 @@ Sol_G:
     Mov EDX,4   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
+
 La_A:
     Test ECX,ECX    ;Test if any sample in ECX
     Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
@@ -364,6 +363,7 @@ La_A:
     Mov EDX,5   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
+
 Si_B:
     Test ECX,ECX    ;Test if any sample in ECX
     Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
@@ -373,6 +373,7 @@ Si_B:
     Mov EDX,6   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
+
 Do_C.:
     Test ECX,ECX    ;Test if any sample in ECX
     Jz  EnterKey    ; if (ECX == 0) GOTO EnterKey
@@ -382,6 +383,7 @@ Do_C.:
     Mov EDX,7   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
     Jmp Loop    ;GOTO loop
+
 Loop:
     Fld ST0 ;Load the top stack value to stack (duplicate it) [Floating]
     Fmul ST0, ST2   ;Multiple the top stack with third stack (sampleno * note) and store it to ST(0)/first stack [Floating]
@@ -398,12 +400,20 @@ Loop:
     Jnz Loop    ;if (ECX != 0) GOTO Loop
     Fistp dword [esp]   ;Load next sampleno to Stack
     Pop EAX ;POP EAX value from register
+
+OpenSndDriver:
+    Mov EAX,5   ;sys_open kernel call
+    Mov EBX,path    ;define the path
+    Mov ECX,2   ;Open and write specified file
+    Int 80h     ;Call kernel
+
 Error:
     Mov EAX,4
     Mov EBX,1
     Mov ECX,MsgError
     Mov EDX,MsgErrorLen
     Int 80h
+
 Exit:    
     Mov EAX,1   ;keluar dari sys_call
     Mov EBX,0   ;Return 0 (Avoid Segmentation fault (core dumped))
