@@ -189,7 +189,7 @@ termios:
     c_lflag Resd 1    ; local mode flags
     c_line Resb 1     ; line discipline
     c_cc Resb 64      ; control characters
-WriteBuffer: Resd 2024  ;Reserve 2KiB
+WriteBuffer: Resb 2024  ;Reserve 2Kbit
 
 SECTION .text   ;code section
 global _start   ;mulai di label _start / main program
@@ -312,7 +312,7 @@ Do_C:
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,0   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
-    Jmp Loop    ;GOTO loop
+    Jmp _Loop    ;GOTO loop
 
 Re_D:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -322,7 +322,7 @@ Re_D:
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,1   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
-    Jmp Loop    ;GOTO loop
+    Jmp _Loop    ;GOTO loop
 
 Mi_E:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -332,7 +332,7 @@ Mi_E:
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,2   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
-    Jmp Loop    ;GOTO loop
+    Jmp _Loop    ;GOTO loop
 
 Fa_F:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -342,7 +342,7 @@ Fa_F:
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,3   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
-    Jmp Loop    ;GOTO loop
+    Jmp _Loop    ;GOTO loop
 
 Sol_G:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -352,7 +352,7 @@ Sol_G:
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,4   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
-    Jmp Loop    ;GOTO loop
+    Jmp _Loop    ;GOTO loop
 
 La_A:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -362,7 +362,7 @@ La_A:
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,5   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
-    Jmp Loop    ;GOTO loop
+    Jmp _Loop    ;GOTO loop
 
 Si_B:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -372,7 +372,7 @@ Si_B:
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,6   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
-    Jmp Loop    ;GOTO loop
+    Jmp _Loop    ;GOTO loop
 
 Do_C.:
     Test ECX,ECX    ;Test if any sample in ECX
@@ -382,9 +382,9 @@ Do_C.:
     Fild dword [esp]    ;Push top normal stack value to x87 stack (Floating point stack) 
     Mov EDX,7   ;Take the index number from table
     Fld qword [FreqTable+8*EDX] ;take the the table value and push into stack [Floating]
-    Jmp Loop    ;GOTO loop
+    Jmp _Loop    ;GOTO loop
 
-Loop:
+_Loop:
     Fld ST0 ;Load the top stack value to stack (duplicate it) [Floating]
     Fmul ST0, ST2   ;Multiple the top stack with third stack (sampleno * note) and store it to ST(0)/first stack [Floating]
     Fsin    ;Calculate sine
@@ -397,16 +397,29 @@ Loop:
     Fld1    ;load 1 to stack [Floating]
     Faddp   ;add first stack and second stack and POP the register stack (sampleno + 1.0) [Floating]
     Dec ECX ; ECX--
-    Jnz Loop    ;if (ECX != 0) GOTO Loop
+    Jnz _Loop    ;if (ECX != 0) GOTO Loop
     Fistp dword [esp]   ;Load next sampleno to Stack
     Pop EAX ;POP EAX value from register
+    Jmp OpenSndDriver
 
 OpenSndDriver:
     Mov EAX,5   ;sys_open kernel call
     Mov EBX,path    ;define the path
     Mov ECX,2   ;Open and write specified file
     Int 80h     ;Call kernel
+    Cmp EAX,2   ;Compare if open() == 2 (stderr)
+    Je Exit     ;if error jump to exit immediately jump to exit
+    
+    Mov EAX,4
+    Mov EBX,0
+    Mov ECX,
+    Mov EDX,WriteBuffer
+    Int 80h
 
+    Mov EAX,6   ;sys_close kernel call
+    Mov EBX,1   ;file descriptor stdin
+    Int 80h     ;call kernel
+    
 Error:
     Mov EAX,4
     Mov EBX,1
