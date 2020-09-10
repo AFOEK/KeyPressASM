@@ -416,6 +416,7 @@ OpenSndDriver:
     Mov EDX,WriteBuffer
     Int 80h
 
+    ;close() are unnecessary
     Mov EAX,6   ;sys_close kernel call
     Mov EBX,1   ;file descriptor stdin
     Int 80h     ;call kernel
