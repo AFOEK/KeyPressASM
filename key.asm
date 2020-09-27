@@ -410,16 +410,16 @@ OpenSndDriver:
     Cmp EAX,2   ;Compare if open() == 2 (stderr)
     Je Exit     ;if error jump to exit immediately jump to exit
     
-    Mov EAX,4
-    Mov EBX,0
-    Mov ECX,
-    Mov EDX,WriteBuffer
-    Int 80h
+    Mov EAX,4   ;sys_write kernel call
+    Mov EBX,0   ;STDIN trap
+    Mov ECX,AL  ;Write the value from AL
+    Mov EDX,WriteBuffer ;reserve buffer
+    Int 80h ;call kernel
 
     ;close() are unnecessary
-    Mov EAX,6   ;sys_close kernel call
-    Mov EBX,1   ;file descriptor stdin
-    Int 80h     ;call kernel
+    ;Mov EAX,6   ;sys_close kernel call
+    ;Mov EBX,1   ;file descriptor stdin
+    ;Int 80h     ;call kernel
     
 Error:
     Mov EAX,4
