@@ -1,1 +1,7 @@
 key.asm
+build/
+CMakeFiles/
+.gdb_history
+*.cmake
+CMakeCache.txt
+Makefile
