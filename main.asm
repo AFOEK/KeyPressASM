@@ -6,10 +6,10 @@ SECTION .data   ;Declare variables
     Debug_Msg_len: EQU $-Debug_Msg
 
     Message_err: DB "Error !",10
-    Message_err_len: EQU $Message_err_len
+    Message_err_len: EQU $-Message_err
 
     Message_err_alsa: DB "Failed to initialized Alsa !", 10
-    Message_err_alsa_len: EQU $Message_err_alsa
+    Message_err_alsa_len: EQU $-Message_err_alsa
 
     FreqTable:                      ;Declare frequency table
         DQ 2.0548023848490921e-1    ;C
@@ -47,6 +47,7 @@ SECTION .bss    ;Uninitialized data section / memory reserve
 
 
 SECTION .text   ;Code section
+    BITS 32 ;Explicit 32-bit only
     ;Get all alsa settings
     extern snd_pcm_open, snd_pcm_close, snd_pcm_hw_params_malloc
     extern snd_pcm_hw_params_any, snd_pcm_hw_params_set_access
@@ -201,6 +202,9 @@ Phase_ok:
     RET     ;Return from subroutine
 
 Init_alsa:
+    MOV dword [Alsa_handle], 0
+    MOV dword [Alsa_params], 0
+    ; snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)
     PUSH 0
     PUSH SND_PCM_STREAM_PLAYBACK
     PUSH Alsa_device
@@ -209,13 +213,13 @@ Init_alsa:
     ADD ESP, 16
     TEST EAX, EAX
     JNZ Error
-
+    ;snd_pcm_hw_params_malloc(&params)
     PUSH Alsa_params
     CALL snd_pcm_hw_params_malloc
     ADD ESP, 4
     TEST EAX, EAX
     JNZ Error
-
+    ;snd_pcm_hw_params_any(handle, params)
     PUSH dword [Alsa_params]
     PUSH dword [Alsa_handle]
     CALL snd_pcm_hw_params_any
@@ -264,6 +268,7 @@ Init_alsa:
     RET
 
 Error:
+    ;Return -1
     MOV EAX, -1
     RET
 

@@ -3,18 +3,20 @@ project(Piano LANGUAGES ASM_NASM C)
 
 set(CMAKE_ASM_NASM_FLAGS "-f elf32 -g -F dwarf")
 set(CMAKE_ASM_NASM_OBJECT_FORMAT elf32)
+set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
 
-find_package(Pkgconfig REQUIRED)
-pkg_check_modules(ALSA REQUIRED alsa)
+set(CMAKE_EXE_LINKER_FLAGS "-m32 -L/usr/lib/i386-linux-gnu")
 
-if(NOT ALSA_FOUND)
-    message(FATAL_ERROR "ALSA library not found!")
-endif()
+set(CMAKE_ASM_NASM_COMPILE_OBJECT "<CMAKE_ASM_NASM_COMPILER> <FLAGS> -o <OBJECT> <SOURCE>")
+set(CMAKE_ASM_NASM_LINK_EXECUTABLE "gcc -m32 -no-pie -static-libgcc -nostartfiles -L/usr/lib/i386-linux-gnu <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+
+find_library(ALSA_LIB NAMES asound)
+find_library(MATH_LIB NAMES m)
+
+message(STATUS "Found ALSA library: ${ALSA_LIB}")
+message(STATUS "Found ALSA headers: ${ALSA_INCLUDE_DIR}")
+message(STATUS "Found MATH library: ${MATH_LIB}")
 
 add_executable(Piano main.asm)
 
-target_link_libraries(Piano ${ALSA_LIBRARIES} m)
-
-if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    set_target_properties(Piano PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
-endif()
+target_link_libraries(Piano ${ALSA_LIB} ${MATH_LIB})
