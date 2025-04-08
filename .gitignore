@@ -5,3 +5,5 @@ CMakeFiles/
 *.cmake
 CMakeCache.txt
 Makefile
+*.rep/
+*.gpr

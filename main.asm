@@ -70,8 +70,8 @@ _start:         ;main()
     ; INT 80H ;sys_call
 
     CALL Init_alsa
-    TEST EAX, EAX
-    JNZ Error_exit
+    CMP EAX, 0
+    JNE Alsa_failed
 
     CMP EAX, 0  ;Compare EAX (sys_open return value) == 0
     JL exit ;Jump if EAX < 0 else continue
@@ -132,6 +132,7 @@ Check_keyboard:
 
 Invalid_key:
     MOV byte [Last_key], 0  ;Treat it as a key release
+    JMP End_check
 
 End_check:
     POPA    ;Return all stored register value from stack back to register
@@ -202,89 +203,114 @@ Phase_ok:
     RET     ;Return from subroutine
 
 Init_alsa:
-    MOV dword [Alsa_handle], 0
-    MOV dword [Alsa_params], 0
+    MOV dword [Alsa_handle], 0  ;Clear ALSA device
+    MOV dword [Alsa_params], 0  ;Clear hardware parameters pointer
+
     ; snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0)
-    PUSH 0
-    PUSH SND_PCM_STREAM_PLAYBACK
-    PUSH Alsa_device
-    PUSH Alsa_handle
-    CALL snd_pcm_open
-    ADD ESP, 16
-    TEST EAX, EAX
-    JNZ Error
-    ;snd_pcm_hw_params_malloc(&params)
-    PUSH Alsa_params
-    CALL snd_pcm_hw_params_malloc
-    ADD ESP, 4
-    TEST EAX, EAX
-    JNZ Error
-    ;snd_pcm_hw_params_any(handle, params)
-    PUSH dword [Alsa_params]
-    PUSH dword [Alsa_handle]
-    CALL snd_pcm_hw_params_any
-    ADD ESP, 8
-    TEST EAX, EAX
-    JNZ Error
+    PUSH 0  ;Mode (0 default)
+    PUSH SND_PCM_STREAM_PLAYBACK    ;Stream type (playback)
+    PUSH Alsa_device    ;Device name
+    PUSH Alsa_handle    ;Pointer to store handle
+    CALL snd_pcm_open   ;Call ALSA open function
+    ADD ESP, 16         ;Clean up stack (4 args * 4 bytes)
+    CMP EAX, 0          ;Check return value
+    JL Alsa_fail        ;Jump if error
 
-    PUSH SND_PCM_ACCESS_RW_INTERLEAVED
-    PUSH dword [Alsa_params]
-    PUSH dword [Alsa_handle]
-    CALL snd_pcm_hw_params_set_access
-    ADD ESP, 12
-    TEST EAX, EAX
-    JNZ Error
+    ; snd_pcm_hw_params_malloc(&params)
+    PUSH Alsa_params    ;Pointer to store parameters
+    CALL snd_pcm_hw_params_malloc   ;Allocate params structure
+    ADD ESP, 4      ;Clean up stack
+    CMP EAX, 0      ;Check return value
+    JL Alsa_fail    ;Jump if error
 
-    PUSH SND_PCM_FORMAT_S16_LE
-    PUSH dword [Alsa_params]
-    push dword [Alsa_handle]
-    CALL snd_pcm_hw_params_set_format
-    ADD ESP, 12
-    TEST EAX, EAX
-    JNZ Error
+    ; snd_pcm_hw_params_any(handle, params)
+    PUSH dword [Alsa_params]    ;Hardware params
+    PUSH dword [Alsa_handle]    ;PCM device handle
+    CALL snd_pcm_hw_params_any  ;Init params
+    ADD ESP, 8                  ;Clean up stack
+    TEST EAX, EAX               ;Test return value
+    JNZ Error                   ;Jump if error
 
-    PUSH 1
-    PUSH dword [Alsa_params]
-    PUSH dword [Alsa_handle]
-    CALL snd_pcm_hw_params_set_channels
-    ADD ESP, 12
-    TEST EAX, EAX
-    JNZ Error
+    ; snd_pcm_hw_params_set_access(handle, params, SND_PCM_ACCESS_RW_INTERLEAVED)
+    PUSH SND_PCM_ACCESS_RW_INTERLEAVED  ;Access type (interleaved rw)
+    PUSH dword [Alsa_params]            ;Hardware params
+    PUSH dword [Alsa_handle]            ;PCM handle
+    CALL snd_pcm_hw_params_set_access   ;Set access type
+    ADD ESP, 12                         ;Clean up stack
+    TEST EAX, EAX                       ;Test return value
+    JNZ Error                           ;Jump if error
 
-    PUSH 0
-    PUSH Sample_Rate
-    PUSH dword [Alsa_params]
-    PUSH dword [Alsa_handle]
-    CALL snd_pcm_hw_params_set_rate_near
-    ADD ESP, 16
-    TEST EAX, EAX
-    JNZ Error
+    ; snd_pcm_hw_params_set_format(handle, params, SND_PCM_FORMAT_S16_LE)
+    PUSH SND_PCM_FORMAT_S16_LE          ;Sample format
+    PUSH dword [Alsa_params]            ;Hardware params
+    push dword [Alsa_handle]            ;PCM handle
+    CALL snd_pcm_hw_params_set_format   ;Set format
+    ADD ESP, 12                         ;Clean up stack
+    TEST EAX, EAX                       ;Test return value
+    JNZ Error                           ;Jump if error
 
-    PUSH dword [Alsa_handle]
-    CALL snd_pcm_prepare
-    ADD ESP, 4
+    ; snd_pcm_hw_params_set_channels(handle, params, 1)
+    PUSH 1              ;Channel count (mono)
+    PUSH dword [Alsa_params]    ;Hardware params
+    PUSH dword [Alsa_handle]    ;PCM handle
+    CALL snd_pcm_hw_params_set_channels ;Set channels
+    ADD ESP, 12     ;Clean up stack
+    TEST EAX, EAX   ;test return value
+    JNZ Error       ;Jump if error
 
-    XOR EAX, EAX
-    RET
+    ; snd_pcm_hw_params_set_rate_near(handle, params, &Sample_Rate, 0)
+    PUSH 0      ;Direction (0 = exact/nearest)
+    PUSH Sample_Rate    ;Sample rate (44100)
+    PUSH dword [Alsa_params]    ;Hardware params
+    PUSH dword [Alsa_handle]    ;PCM handle
+    CALL snd_pcm_hw_params_set_rate_near    ;Set sample rate
+    ADD ESP, 16         ;Clean up stack
+    TEST EAX, EAX       ;Test return value
+    JNZ Error           ;Jump if error
+
+    PUSH dword [Alsa_handle]    ;PCM handle
+    CALL snd_pcm_prepare        ;Prepare device
+    ADD ESP, 4                  ;Clean up stack
+
+    XOR EAX, EAX                ;Set return value to 0
+    RET                         ;Return to function
 
 Error:
     ;Return -1
     MOV EAX, -1
     RET
 
+Alsa_fail:
+    CMP dword [Alsa_handle], 0      ;Check if handle exists
+    JE Error                        ;Skip close if no handle
+    PUSH dword [Alsa_handle]        ;PCM handle to close
+    CALL snd_pcm_close              ;Close device
+    ADD ESP, 4                      ;Clean up stack
+    JMP Error                       ;Return error
+
 Close_and_exit:
     ; MOV EAX, 6  ;sys_close
     ; MOV EBX, [Audio_fd] ;Audio file descriptor
     ; INT 80H ;sys_call
-
-    PUSH dword [Alsa_handle]
-    CALL snd_pcm_close
-    ADD ESP, 4
-    MOV EAX, 1
-    XOR EBX, EBX
-    INT 80H
+    PUSH dword [Alsa_handle]       ;PCM handle to close
+    CALL snd_pcm_close             ;Close device
+    ADD ESP, 4                     ;Clean up stack
+    MOV EAX, 1                     ;sys_exit
+    XOR EBX, EBX                   ;Exit code 0
+    INT 80H                        ;system call
 
 Error_exit:
+    MOV EAX, 4
+    MOV EBX, 1
+    MOV ECX, Message_err_alsa
+    MOV EDX, Message_err_alsa_len
+    INT 80H
+
+    MOV EAX, 1
+    MOV EBX, 1
+    INT 80H
+
+Alsa_failed:
     MOV EAX, 4
     MOV EBX, 1
     MOV ECX, Message_err_alsa
