@@ -1,3 +1,6 @@
+; Section for supress warning
+SECTION .note.GNU-stack noalloc noexec nowrite progbits
+
 SECTION .data   ;Declare variables
     Message: DB "Press (or hold) key to play note (A - K)", 10
     Message_len: EQU $-Message
@@ -21,7 +24,7 @@ SECTION .data   ;Declare variables
         DQ 3.8789503773922857e-1    ;B
         DQ 4.1096047696981880e-1    ;C'
 
-    Audio_dev_path: DB "/dev/snd/pcmC0D0p",0    ;Sound device path
+    ;Audio_dev_path: DB "/dev/snd/pcmC0D0p",0    ;Sound device path
     Scale: DQ 2000  ;Scaling to convert to audible frequency
     Sample_Rate: EQU 44100   ;Set sampling rate
     Segment_MS: EQU 40   ;Duration of each audio segment in ms (timing each note play, lower more smooth but more CPU)
@@ -54,9 +57,9 @@ SECTION .text   ;Code section
     extern snd_pcm_hw_params_set_format, snd_pcm_hw_params_set_channels
     extern snd_pcm_hw_params_set_rate_near, snd_pcm_hw_params
     extern snd_pcm_writei, snd_pcm_prepare
-    global _start   ;Set starting point
+    global main   ;Set starting point
 
-_start:         ;main()
+main:         ;main()
     MOV EAX, 4  ;Call sys_write
     MOV EBX, 1  ;stdout
     MOV ECX, Message    ;message content
@@ -71,7 +74,7 @@ _start:         ;main()
 
     CALL Init_alsa
     CMP EAX, 0
-    JNE Alsa_failed
+    JNE Error_exit
 
     CMP EAX, 0  ;Compare EAX (sys_open return value) == 0
     JL exit ;Jump if EAX < 0 else continue
@@ -217,7 +220,8 @@ Init_alsa:
     JL Alsa_fail        ;Jump if error
 
     ; snd_pcm_hw_params_malloc(&params)
-    PUSH Alsa_params    ;Pointer to store parameters
+    LEA EAX, [Alsa_params]  ;EAX = &Alsa_params
+    PUSH EAX    ;push &Alsa_params (i.e., snd_pcm_hw_params_t **)
     CALL snd_pcm_hw_params_malloc   ;Allocate params structure
     ADD ESP, 4      ;Clean up stack
     CMP EAX, 0      ;Check return value
@@ -260,7 +264,8 @@ Init_alsa:
 
     ; snd_pcm_hw_params_set_rate_near(handle, params, &Sample_Rate, 0)
     PUSH 0      ;Direction (0 = exact/nearest)
-    PUSH Sample_Rate    ;Sample rate (44100)
+    LEA EAX, [Sample_Rate]
+    PUSH EAX    ;Sample rate (44100)
     PUSH dword [Alsa_params]    ;Hardware params
     PUSH dword [Alsa_handle]    ;PCM handle
     CALL snd_pcm_hw_params_set_rate_near    ;Set sample rate
@@ -282,11 +287,11 @@ Error:
 
 Alsa_fail:
     CMP dword [Alsa_handle], 0      ;Check if handle exists
-    JE Error                        ;Skip close if no handle
+    JE Error_exit                   ;Skip close if no handle
     PUSH dword [Alsa_handle]        ;PCM handle to close
     CALL snd_pcm_close              ;Close device
     ADD ESP, 4                      ;Clean up stack
-    JMP Error                       ;Return error
+    JMP Error_exit                  ;Return error
 
 Close_and_exit:
     ; MOV EAX, 6  ;sys_close
@@ -308,17 +313,7 @@ Error_exit:
 
     MOV EAX, 1
     MOV EBX, 1
-    INT 80H
-
-Alsa_failed:
-    MOV EAX, 4
-    MOV EBX, 1
-    MOV ECX, Message_err_alsa
-    MOV EDX, Message_err_alsa_len
-    INT 80H
-
-    MOV EAX, 1
-    MOV EBX, 1
+    ;XOR EBX, EBX
     INT 80H
 
 exit:
