@@ -20,8 +20,9 @@ SECTION .data   ;Declare variables
     Sample_Rate: DD 44100   ;Set sampling rate
     Segment_MS: EQU 40   ;Duration of each audio segment in ms (timing each note play, lower more smooth but more CPU)
     Amplitude: EQU 12000 ;16 bit signed amplitude (How loud the note Max: 32767)
-    Alsa_device: DB "plughw:0,0", 0
-    SND_PCM_STREAM_PLAYBACK: EQU 1
+    Channels: DD 2   ;1: Mono, 2: Stereo
+    Alsa_device: DB "hw:0,0", 0 ;Alsa device name
+    SND_PCM_STREAM_PLAYBACK: EQU 0
     SND_PCM_FORMAT_S16_LE: EQU 2
     SND_PCM_ACCESS_RW_INTERLEAVED: EQU 3
 
@@ -47,7 +48,9 @@ SECTION .bss    ;Uninitialized data section / memory reserve
     Alsa_params: RESD 1 ;Alsa param
     Alse_buffer: RESD 1 ;Alsa buffer
     Samples_per_segment: EQU (44100 * Segment_MS / 1000)  ; = 1764 samples
-    Sample_buffer: RESW Samples_per_segment  ; 16-bit samples
+    Samples_per_frame: EQU Samples_per_segment * Channels
+    Sample_buffer: RESW Samples_per_frame  ; 32-bit samples
+    Repeat_delay: RESD 1
     Termios:
         c_iflag RESD 1  ;Input mode flags
         c_oflag RESD 1  ;Output mode flags
@@ -78,31 +81,13 @@ main:         ;main()
     MOV EDX, Message_len ;message_len
     INT 80H ;System interupt (sys_call)
 
-    ; MOV EAX, 5  ;Call sys_open
-    ; MOV EBX, Audio_dev_path ;Set audio path
-    ; MOV ECX, 1  ; O_WRONLY (Write only mode)
-    ; MOV EDX, 0  ; No mode (Permission control flag)
-    ; INT 80H ;sys_call
-
     CALL Init_alsa  ;Setting up Alsa device
     CMP EAX, 0      ;Compare if Alsa sub routine return 0 == success
-    JNE Error_exit  ;Jump if not or equal zero
+    JLE Error_exit  ;Jump if less than zero
 
     MOV EAX, [Alsa_handle] ; Load ALSA handle
     MOV [Audio_fd], EAX    ; Save it as file descriptor equivalent
 
-    ;;Set non block stdin (default; stdin always terminate if )
-    MOV EAX, 55 ;sys_fcntl
-    MOV EBX, 0  ;stdin
-    MOV ECX, 3  ;F_GETFL (get current flag)
-    INT 80H     ;sys_call
-
-    OR EAX, 2048    ;set O_NONBLOCK flag value
-    MOV EBX, 0      ;stdin
-    MOV ECX, 4      ;F_SETFL (set new flag)
-    MOV EDX, EAX    ;MOV EAX (New flag value {OE EAX, 2048} to EDX)
-    MOV EAX, 55     ;sys_fnctl
-    INT 80H         ;sys_call
     JMP main_loop
 
 Set_raw_mode:
@@ -118,9 +103,14 @@ Set_raw_mode:
     MOV ECX, 72             ;Number byte to copy
     REP MOVSB               ;Copy termios struct byte by byte
 
-    ;-7 = 0xFFFFFFF9 = ~(1<<1 | 1<<2)
-    AND dword [c_lflag], -7 ;Disable line buffering and input echo (clear bits 1 (ICANON) and 2 (ECHO)
+    ;-8 = 0xFFFFFFF8 = ~(1 << 0 | 1<<1 | 1<<2)
+    ;~(ICANON | ECHO | ISIG)
+    AND dword [c_lflag], -8 ;Disable line buffering and input echo (clear bits 1 (ICANON) and 2 (ECHO)
     
+    ;Set minimum required character to 1
+    MOV byte [c_cc + 6], 1  ;VMIN
+    MOV byte [c_cc + 5], 0  ;VTIME
+
     ;ioctl(stdin, TCSETS, &Termios)
     MOV EAX, 54     ;sys_ioctl
     MOV EBX, 0      ;stdin
@@ -136,8 +126,16 @@ main_loop:
     CMP byte [Last_key], 0  ;check if last key (memory value) == 0
     JE Short_pause          ;Jump if [Last_key] == 0
 
-    CALL Play_note_segment  ;play current note
+    CMP dword [Repeat_delay], 0 ;Check if Repeat_delay == 0
+    JNE Skip_play       ;Jump if [Repeat_delay]  != 0
+
+    CALL Play_note_segment  ;Play current note
+    MOV dword [Repeat_delay], 3 ;Play once every 3 loop
     JMP main_loop   ;loop again
+
+Skip_play:
+    DEC dword [Repeat_delay]
+    JMP main_loop
 
 Short_pause:
     ;Sleep threading for 10ms to reduce CPU usage when it's idle
@@ -171,7 +169,7 @@ Find_key:
     INC ESI
     LOOP Find_key
 
-    JMP Invalid_key
+    JMP End_check
 
 Key_found:
     MOV [Last_key], AL
@@ -189,6 +187,7 @@ End_check:
 Play_note_segment:
     PUSHA   ;Push current registers value to stack
     MOV ECX, Samples_per_segment ;Get pre-calculated sample per segment
+    MOV EDI, Sample_buffer  ;EDI = start of sample buffer
 
     MOVZX EAX, byte [Last_key] ;Move byte to double word (last_key) with zero extention
     SUB EAX, 'a'        ;EAX = EAX - 'a'; Convert to 0 based index
@@ -207,7 +206,6 @@ Play_note_segment:
     ADD ESP, 4  ;Clean up stack
     FSTP qword [Phase_rad]  ;Store phase_rad in memory (pop ST0)
     FLD qword [Phase_acc]   ;Load 64-bit phase accumulator
-    MOV EDI, Sample_buffer  ;EDI = start of sample buffer
 
 Generate_samples:
     FLD ST0     ;Duplicate current phase (ST0 -> ST1, ST0 = phase)
@@ -218,8 +216,10 @@ Generate_samples:
     FIMUL dword [ESP]   ;ST0 = sin(phase) * AMPLITUDE
     ADD ESP, 4  ;Clean up stack
     
-    FISTP word [EDI]    ;Store 16-bit sample
-    ADD EDI, 2          ; Advance buffer pointer by 2
+    FISTP word [EDI]    ;Write to left channel
+    MOV AX, [EDI]       ;Duplicate to right
+    MOV [EDI + 2], AX   ;Write right channel
+    ADD EDI, 4          ; Advance buffer pointer by 4
 
     FLD dword [Phase_rad]   ;Load phase increment (ST0)
     FADDP ST1, ST0          ;ST1 = ST1 + ST0, pop ST0 (Phase_rad += increment)
@@ -228,7 +228,7 @@ Generate_samples:
     FADD ST0, ST0   ;ST0 = 2pi
     FCOMIP ST1     ;Compare 2pi (ST0) with phase (ST1), pop ST0
 
-    JBE Phase_wrap  ;Jump if ST0 <= ST1
+    JA Phase_wrap  ;Jump if ST0 <= ST1
     JMP Phase_ok    ;else continue
 
 Phase_wrap:
@@ -247,9 +247,34 @@ Phase_ok:
     PUSH dword [Alsa_handle]    ;Alsa handle
     CALL snd_pcm_writei         ;Call ALSA write function
     ADD ESP, 12                 ;Clear the stack (3 args * 4 byte)
+    
+    CMP EAX, -32    ;Check if ALSA encounter underrun (EPIPE = -32)
+    JE Underrun     ;Jump if EAX == -32
+
+    CMP EAX, -16    ;Check if ALSA encounter busy (EBUSY = -16)
+    JE Device_busy  ;Jump if EAX == -16
+
+    TEST EAX, EAX   ;Check other lingering error
+    JS Error        ;Jump if sign flag is set (-EAX)
 
     POPA    ;Restore all register value
     RET     ;Return from subroutine
+
+Device_busy:
+    MOV EAX, 162
+    MOV EBX, timespec
+    MOV ECX, 0
+    INT 80H
+    RET
+
+Underrun:
+    ; snd_pcm_prepare(handle)
+    PUSH dword [Alsa_handle]    ;PCM handle
+    CALL snd_pcm_prepare        ;Prepare device
+    ADD ESP, 4                  ;Clean up stack
+    TEST EAX, EAX               ;Test return value
+    JNZ Error                   ;Jump if error
+    JMP Play_note_segment       ;Retry
 
 Init_alsa:
     MOV dword [Alsa_handle], 0  ;Clear ALSA device
@@ -263,7 +288,7 @@ Init_alsa:
     CALL snd_pcm_open   ;Call ALSA open function
     ADD ESP, 16         ;Clean up stack (4 args * 4 bytes)
     CMP EAX, 0          ;Check return value
-    JL Alsa_fail        ;Jump if error
+    JNZ Error           ;Jump if error
 
     ; snd_pcm_hw_params_malloc(&params)
     LEA EAX, [Alsa_params]  ;EAX = &Alsa_params
@@ -271,7 +296,7 @@ Init_alsa:
     CALL snd_pcm_hw_params_malloc   ;Allocate params structure
     ADD ESP, 4      ;Clean up stack
     CMP EAX, 0      ;Check return value
-    JL Alsa_fail    ;Jump if error
+    JNZ Error       ;Jump if error
 
     ; snd_pcm_hw_params_any(handle, params)
     PUSH dword [Alsa_params]    ;Hardware params
@@ -299,8 +324,9 @@ Init_alsa:
     TEST EAX, EAX                       ;Test return value
     JNZ Error                           ;Jump if error
 
-    ; snd_pcm_hw_params_set_channels(handle, params, 1)
-    PUSH 1              ;Channel count (mono)
+    ; snd_pcm_hw_params_set_channels(handle, params, channels)
+    MOV EAX, [Channels]         ;Get channels value
+    PUSH EAX                    ;Push channels
     PUSH dword [Alsa_params]    ;Hardware params
     PUSH dword [Alsa_handle]    ;PCM handle
     CALL snd_pcm_hw_params_set_channels ;Set channels
@@ -340,8 +366,6 @@ Error:
     ;Push return value from ALSA
     PUSH EAX
     CALL Print_alsa_error
-    ;Return -1
-    MOV EAX, -1
     RET
 
 Print_alsa_error:
@@ -368,15 +392,13 @@ Alsa_fail:
     JMP Error_exit                  ;Return error
 
 Close_and_exit:
-    ; MOV EAX, 6  ;sys_close
-    ; MOV EBX, [Audio_fd] ;Audio file descriptor
-    ; INT 80H ;sys_call
     CMP dword [Alsa_handle], 0     ;Compare if [Alsa_handle] == 0
     JE Ok_exit                     ;Jump if equal
     PUSH dword [Alsa_handle]       ;PCM handle to close
     CALL snd_pcm_close             ;Close device
     ADD ESP, 4                     ;Clean up stack
     MOV dword [Alsa_handle], 0     ;Set [Alsa_handle] = 0
+    JMP Ok_exit
 
 Error_exit:
     MOV EBX, 1  ;Set return 1
