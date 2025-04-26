@@ -21,12 +21,14 @@ SECTION .data   ;Declare variables
     Scale: DQ 1.0e4  ;Scaling to convert to audible frequency
     Sample_Rate: DD 44100   ;Set sampling rate
     Segment_MS: EQU 40   ;Duration of each audio segment in ms (timing each note play, lower more smooth but more CPU)
-    Amplitude: EQU 28000 ;16 bit signed amplitude (How loud the note Max: 32767)
+    Amplitude: DD 28000 ;16 bit signed amplitude (How loud the note Max: 32767)
     Channels: DD 2   ;1: Mono, 2: Stereo
     Alsa_device: DB "sysdefault:CARD=PCH", 0 ;Alsa device name
     SND_PCM_STREAM_PLAYBACK: EQU 0
     SND_PCM_FORMAT_S16_LE: EQU 2
     SND_PCM_ACCESS_RW_INTERLEAVED: EQU 3
+    Key_pressed: DB 1
+    Note_change: DB 1
 
     ;Terminal raw mode settings
     TCGETS: EQU 21505
@@ -51,7 +53,7 @@ SECTION .bss    ;Uninitialized data section / memory reserve
     Alse_buffer: RESD 1 ;Alsa buffer
     Samples_per_segment: EQU (44100 * Segment_MS / 1000)  ; = 1764 samples
     Samples_per_frame: EQU Samples_per_segment * Channels
-    Sample_buffer: RESW Samples_per_frame + 4 ; 32-bit samples
+    Sample_buffer: RESW Samples_per_frame * 2 + 4 ; 32-bit samples
     Repeat_delay: RESD 1
     Frame_per_segment: RESD 1   ;Number of frames per segment
     Termios:
@@ -88,8 +90,8 @@ main:         ;main()
     CMP EAX, 0      ;Compare if Alsa sub routine return 0 == success
     JL Error_exit  ;Jump if less than zero
 
-    FLDZ
-    FSTP qword [Phase_acc]
+    FLDZ            ;Push 0.0 to FPU stack
+    FSTP qword [Phase_acc]  ;Store [Phase_acc] FPU value to memory and pop
 
     JMP main_loop   ;Jump to main_loop
 
@@ -126,19 +128,12 @@ main_loop:
     ;Check keyboard input if no continue
     CALL Check_keyboard
 
-    CMP byte [Last_key], 255  ;check if last key (memory value) == 255
-    JE Short_pause          ;Jump if [Last_key] == 255
+    CMP byte [Key_pressed], 1  ;check if key pressed (memory value) == 1
+    JNE Short_pause          ;Jump if [Key_pressed] == 1
 
-    CMP dword [Repeat_delay], 0 ;Check if Repeat_delay == 0
-    JNE Skip_play       ;Jump if [Repeat_delay]  != 0
-
-    CALL Play_note_segment  ;Play current note
-    MOV dword [Repeat_delay], 3 ;Play once every 3 loop
+    CALL Audio_generation  ;Generate current note
+    MOV dword [Repeat_delay], 0 ;Play once every 3 loop
     JMP main_loop   ;Loop again
-
-Skip_play:
-    DEC dword [Repeat_delay]    ;Decrement Repeat_delay (Repeat_delay--)
-    JMP main_loop               ;Loop again
 
 Short_pause:
     ;Sleep threading for 10ms to reduce CPU usage when it's idle
@@ -179,13 +174,19 @@ Find_key:
 
 Key_found:
     MOV AL, [EDI]   ;Load note index from note_map
+    CMP AL, [Last_key]  ;Check if last key is the same
+    JE Same_note        ;Jump if AL == [Last_key]
+    MOV byte [Note_change], 1   ;Set flag if same note
+
+Same_note:
     MOV [Last_key], AL  ;Store it as index
-    FLDZ
-    FSTP qword [Phase_acc]
+    MOV byte [Key_pressed], 1
+
     JMP End_check   ;Jump to end check
 
 Invalid_key:
     MOV byte [Last_key], 255  ;To represent invalid key
+    MOV byte [Key_pressed], 0
 
 End_check:
     POPA    ;Return all stored register value from stack back to register
@@ -194,63 +195,81 @@ No_key:
     RET     ;Return to last jump
 
 ;Audio generation, from mathematically generated sine wave
-Play_note_segment:
+Audio_generation:
     PUSHA   ;Push current registers value to stack
-    MOV ECX, Samples_per_segment ;Get pre-calculated sample per segment
-    MOV EDI, Sample_buffer  ;EDI = start of sample buffer
+    FINIT   ;Clear and initialized FPU
+
+    CMP byte [Note_change], 1   ;Compare [Note_change] == 1
+    JNE No_reset                ;Jump if [Note_change] != 1
+
+    FLDZ                        ;Push 0.0 to FPU stack
+    FSTP qword [Phase_acc]      ;Store [Phase_acc] FPU value to memory and pop
+    MOV byte [Note_change], 0   ;[Note_change] = 0
+
+No_reset:
+    CALL Clear_buffer
 
     MOVZX EAX, byte [Last_key] ;Note index (0-7)
     CMP EAX, 8  ;Check if in bound
     JAE Invalid_note    ;Jump if above or equal (EAX >= 8)
 
-    FINIT
-
-    MOV EBX, FreqTable  ;Load the frequency table to EBX
-    FLD qword [EBX + EAX * 8]   ;Load 64 bit frequency from table (ST0)
-
+    MOV ECX, Samples_per_segment ;Get pre-calculated sample per frame
+    MOV EDI, Sample_buffer  ;EDI = start of sample buffer
+    FLD qword [FreqTable + EAX * 8]   ;Load 64 bit frequency from table (ST0) and get appropiate tone
     FLD qword [Scale]   ;Load scaling factor (ST0), frequency already set to ST1
-    FMULP ST1, ST0      ;Multiply frequency by scale factor (ST1 = ST1 * ST0, the pop ST0)
+    FMULP     ;Multiply frequency by scale factor (ST1 = ST1 * ST0, the pop ST0)
 
     FLDPI   ;Load pi into ST0 (frequency moved to ST1)
     FADD ST0, ST0   ;ST0 = 2pi
-    FMUL ST0, ST1   ;ST0 = 2pi * frequency
+    FMUL   ;ST0 = 2pi * frequency
     FIDIV dword [Sample_Rate]   ;ST0 = pahse_rad
     FSTP qword [Phase_rad]  ;Store phase_rad in memory (pop ST0)
-    FLD qword [Phase_acc]   ;Load 64-bit phase accumulator
-    JMP Generate_samples   ;Jump to generate samples
-
-Invalid_note:
-    POPA    ;Restore register value
-    RET     ;Return to last call
+    FLD qword [Phase_acc]   ;Load current 64-bit phase accumulator
 
 Generate_samples:
     FLD ST0     ;Duplicate current phase (ST0 -> ST1, ST0 = phase)
     FSIN        ;ST0 = sin(phase)
     FIMUL dword [Amplitude] ;ST0 = sin(phase) * AMPLITUDE
-    
-    FISTP word [EDI]    ;Write to left channel
-    MOV AX, [EDI]       ;Duplicate to right
-    MOV [EDI + 2], AX   ;Write right channel
-    ADD EDI, 4          ; Advance buffer pointer by 4
+
+    FISTP word [EDI]    ;Store left channel sample, and write it to [EDI]
+    MOV AX, [EDI]       ;Load back value from [EDI]
+    MOV [EDI + 2], AX   ;Write to right channel
+    ADD EDI, 4          ;Advance buffer pointer by 4
 
     FLD qword [Phase_rad]   ;Load phase increment (ST0)
-    FADDP ST1, ST0          ;ST1 = ST1 + ST0, pop ST0 (Phase_rad += increment)
+    FADD          ;Phase_acc + Phase_rad
+    FSTP ST0      ;Store result back to ST0
 
     FLDPI   ;Load pi to ST0
     FADD ST0, ST0   ;ST0 = 2pi
-    FLD ST1
+    FLD ST0     ;Load 2pi (copy)
     FCOMPP
     FSTSW AX
     SAHF
-    JNA Phase_ok
-    FLDPI
-    FADD ST0, ST0
-    FSUBR qword [Phase_acc]   ;Phase -= 2pi, pop ST0
+    JA Phase_wrap
+    JMP Phase_ok
+
+Phase_wrap:
+    FLDPI   ;Load pi
+    FADD ST0, ST0   ;2pi
+    FSUBP ST1, ST0  ;Phase_acc -= 2pi
 
 Phase_ok:
     LOOP Generate_samples   ;Decrement ECX, jump if not zero
+
     FSTP qword [Phase_acc]  ;Store 64-bit phase accumulator, pop ST0
-    JMP Write_audio
+    FFREE ST0
+    CALL Write_audio
+    POPA
+    RET
+
+Invalid_note:
+    MOV ECX, Samples_per_frame ;Get pre-calculated sample per frame
+    MOV EDI, Sample_buffer  ;EDI = start of sample buffer
+    XOR EAX, EAX    ;Clear EAX
+    REP STOSW       ;Store word in string repeat until CX == 0
+    POPA            ;restore all value to register
+    RET             ;Return to recent CALL
 
 Write_audio:
     ;Calculate Frame_per_segment = Sample_per_segment / Channels
@@ -294,11 +313,18 @@ Underrun:
     ADD ESP, 4                  ;Clean up stack
     TEST EAX, EAX               ;Test return value
     JNZ Error                   ;Jump if error
-    JMP Play_note_segment       ;Retry
+    JMP Audio_generation       ;Retry
 
 Play_done:
-    POPA
-    RET
+    RET                     ;Return to function
+
+Clear_buffer:
+    MOV ECX, Samples_per_segment    ;Set ECX = Samples_per_segment
+    IMUL ECX, [Channels]            ;ECX = ECX * [Channels]
+    MOV EDI, Sample_buffer          ;Point EDI to beginning of sample buffer
+    XOR EAX,EAX                     ;EAX = 0
+    REP STOSW                       ;Repeat store 0 word ECX time
+    RET                             ;Return to last call
 
 Init_alsa:
     MOV dword [Alsa_handle], 0  ;Clear ALSA device
@@ -350,7 +376,7 @@ Init_alsa:
     JNZ Error                           ;Jump if error
 
     ; snd_pcm_hw_params_set_channels(handle, params, channels)
-    PUSH dword [Channels]                    ;Push channels
+    PUSH dword [Channels]       ;Push channels
     PUSH dword [Alsa_params]    ;Hardware params
     PUSH dword [Alsa_handle]    ;PCM handle
     CALL snd_pcm_hw_params_set_channels ;Set channels
@@ -397,8 +423,8 @@ Print_alsa_error:
     CALL snd_strerror   ;Get ALSA error string
     ADD ESP, 4     ;Clean up stack
 
-    TEST EAX, EAX
-    JZ Done
+    TEST EAX, EAX   ;Check if EAX == EAX
+    JZ Done         ;Jump if EAX == 0
 
     MOV ECX, EAX    ;Set buffer for the error message
     MOV EAX, 4      ;sys_write
