@@ -205,10 +205,9 @@ Audio_generation:
     FLDZ                        ;Push 0.0 to FPU stack
     FSTP qword [Phase_acc]      ;Store [Phase_acc] FPU value to memory and pop
     MOV byte [Note_change], 0   ;[Note_change] = 0
-
-No_reset:
     CALL Clear_buffer
 
+No_reset:
     MOVZX EAX, byte [Last_key] ;Note index (0-7)
     CMP EAX, 8  ;Check if in bound
     JAE Invalid_note    ;Jump if above or equal (EAX >= 8)
@@ -242,26 +241,28 @@ Generate_samples:
 
     FLDPI   ;Load pi to ST0
     FADD ST0, ST0   ;ST0 = 2pi
-    FLD ST0     ;Load 2pi (copy)
-    FCOMPP
-    FSTSW AX
-    SAHF
-    JA Phase_wrap
+    FLD ST1     ;Load 2pi (copy)
+    FCOM        ;Compare ST0 (Phase_acc) and ST1 (2pi)
+    FSTSW AX    ;Get comparision flag
+    SAHF        ;Push it to CPU flag
+    JA Phase_wrap   ;Jump if Phase_acc > 2pi
     JMP Phase_ok
-
-Phase_wrap:
-    FLDPI   ;Load pi
-    FADD ST0, ST0   ;2pi
-    FSUBP ST1, ST0  ;Phase_acc -= 2pi
 
 Phase_ok:
     LOOP Generate_samples   ;Decrement ECX, jump if not zero
 
+    FLD ST0
     FSTP qword [Phase_acc]  ;Store 64-bit phase accumulator, pop ST0
     FFREE ST0
     CALL Write_audio
     POPA
     RET
+
+Phase_wrap:
+    FLDPI   ;Load pi
+    FADD ST0, ST0   ;2pi
+    FSUBP ST1, ST0  ;Phase_acc -= 2pi
+    JMP Phase_ok
 
 Invalid_note:
     MOV ECX, Samples_per_frame ;Get pre-calculated sample per frame
