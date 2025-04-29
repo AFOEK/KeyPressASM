@@ -92,7 +92,8 @@ main:         ;main()
 
     FLDZ            ;Push 0.0 to FPU stack
     FSTP qword [Phase_acc]  ;Store [Phase_acc] FPU value to memory and pop
-
+    MOV byte [Last_key], 255
+    MOV byte [Note_change], 1
     JMP main_loop   ;Jump to main_loop
 
 Set_raw_mode:
@@ -126,13 +127,13 @@ Set_raw_mode:
 
 main_loop:
     ;Check keyboard input if no continue
+    MOV byte [Key_pressed], 0
     CALL Check_keyboard
 
     CMP byte [Key_pressed], 1  ;check if key pressed (memory value) == 1
     JNE Short_pause          ;Jump if [Key_pressed] == 1
 
     CALL Audio_generation  ;Generate current note
-    MOV dword [Repeat_delay], 0 ;Play once every 3 loop
     JMP main_loop   ;Loop again
 
 Short_pause:
@@ -205,7 +206,6 @@ Audio_generation:
     FLDZ                        ;Push 0.0 to FPU stack
     FSTP qword [Phase_acc]      ;Store [Phase_acc] FPU value to memory and pop
     MOV byte [Note_change], 0   ;[Note_change] = 0
-    CALL Clear_buffer
 
 No_reset:
     MOVZX EAX, byte [Last_key] ;Note index (0-7)
@@ -240,7 +240,7 @@ Generate_samples:
     FLDPI   ;Load pi to ST0
     FADD ST0, ST0   ;ST0 = 2pi
     FLD ST1     ;Load 2pi (copy)
-    FCOMPP      ;Compar and pop both
+    FCOMPP      ;Compare and pop both
     FSTSW AX
     SAHF
     JBE Phase_ok    ;Jump if Phase_acc <= 2pi
