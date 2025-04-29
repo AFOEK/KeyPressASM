@@ -246,12 +246,10 @@ Generate_samples:
     FSTSW AX    ;Get comparision flag
     SAHF        ;Push it to CPU flag
     JA Phase_wrap   ;Jump if Phase_acc > 2pi
-    JMP Phase_ok
 
 Phase_ok:
     LOOP Generate_samples   ;Decrement ECX, jump if not zero
 
-    FLD ST0
     FSTP qword [Phase_acc]  ;Store 64-bit phase accumulator, pop ST0
     FFREE ST0
     CALL Write_audio
