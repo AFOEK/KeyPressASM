@@ -229,38 +229,33 @@ Generate_samples:
     FLD ST0     ;Duplicate current phase (ST0 -> ST1, ST0 = phase)
     FSIN        ;ST0 = sin(phase)
     FIMUL dword [Amplitude] ;ST0 = sin(phase) * AMPLITUDE
-
     FISTP word [EDI]    ;Store left channel sample, and write it to [EDI]
     MOV AX, [EDI]       ;Load back value from [EDI]
     MOV [EDI + 2], AX   ;Write to right channel
     ADD EDI, 4          ;Advance buffer pointer by 4
 
     FLD qword [Phase_rad]   ;Load phase increment (ST0)
-    FADD          ;Phase_acc + Phase_rad
-    FSTP ST0      ;Store result back to ST0
+    FADDP ST1, ST0          ;Phase_acc += Phase_rad, and pop ST0
 
     FLDPI   ;Load pi to ST0
     FADD ST0, ST0   ;ST0 = 2pi
     FLD ST1     ;Load 2pi (copy)
-    FCOM        ;Compare ST0 (Phase_acc) and ST1 (2pi)
-    FSTSW AX    ;Get comparision flag
-    SAHF        ;Push it to CPU flag
-    JA Phase_wrap   ;Jump if Phase_acc > 2pi
+    FCOMPP      ;Compar and pop both
+    FSTSW AX
+    SAHF
+    JBE Phase_ok    ;Jump if Phase_acc <= 2pi
+
+    FLDPI
+    FADD ST0, ST0                 ;ST0 = 2pi
+    FSUBP ST1, ST0                ;ST1 = Phase_acc - 2pi → now in ST0
 
 Phase_ok:
-    LOOP Generate_samples   ;Decrement ECX, jump if not zero
+    LOOP Generate_samples
 
-    FSTP qword [Phase_acc]  ;Store 64-bit phase accumulator, pop ST0
-    FFREE ST0
+    FSTP qword [Phase_acc]
     CALL Write_audio
     POPA
     RET
-
-Phase_wrap:
-    FLDPI   ;Load pi
-    FADD ST0, ST0   ;2pi
-    FSUBP ST1, ST0  ;Phase_acc -= 2pi
-    JMP Phase_ok
 
 Invalid_note:
     MOV ECX, Samples_per_frame ;Get pre-calculated sample per frame
