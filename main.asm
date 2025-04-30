@@ -176,14 +176,17 @@ Find_key:
 Key_found:
     MOV AL, [EDI]   ;Load note index from note_map
     CMP AL, [Last_key]  ;Check if last key is the same
-    JE Same_note        ;Jump if AL == [Last_key]
-    MOV byte [Note_change], 1   ;Set flag if same note
+    JNE New_note        ;Jump if AL == [Last_key]
 
-Same_note:
-    MOV [Last_key], AL  ;Store it as index
+    MOV byte [Key_pressed], 1   ;Set flag if same note
+    JMP End_check
+
+New_note:
+    ;Different key pressed
+    MOV byte [Note_change], 1
+    MOV [Last_key], AL
     MOV byte [Key_pressed], 1
-
-    JMP End_check   ;Jump to end check
+    JMP End_check
 
 Invalid_key:
     MOV byte [Last_key], 255  ;To represent invalid key
